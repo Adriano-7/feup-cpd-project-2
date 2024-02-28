@@ -116,7 +116,7 @@ void OnMultLine(int m_ar, int m_br){
 // add code here for block x block matriz multiplication
 void OnMultBlock(int m_ar, int m_br, int bkSize)
 {
-	SYSTEMTIME Time1, Time2;
+	clock_t Time1, Time2;
 	
 	char st[100];
 	double temp;
@@ -136,6 +136,10 @@ void OnMultBlock(int m_ar, int m_br, int bkSize)
 		for(j=0; j<m_br; j++)
 			phb[i*m_br + j] = (double)(i+1);
 
+	for(i=0; i<m_ar; i++)
+		for(j=0; j<m_ar; j++)
+			phc[i*m_ar + j] = 0.0;  // Initialize phc to 0
+
 	Time1 = clock();
 
 	for (blockRowStart = 0; blockRowStart < m_ar; blockRowStart += bkSize){
@@ -146,7 +150,7 @@ void OnMultBlock(int m_ar, int m_br, int bkSize)
 					for (k = blockRowStart; k < min(blockRowStart + bkSize, m_ar); k++){
 						temp += pha[i * m_ar + k] * phb[k * m_br + j];
 					}
-					phc[i * m_ar + j] = temp;
+					phc[i * m_ar + j] += temp;  // Change this line
 				}
 			}
 		}
@@ -156,10 +160,10 @@ void OnMultBlock(int m_ar, int m_br, int bkSize)
 	sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
 	cout << st;
 
-	// display 10 elements of the result matrix tto verify correctness
+	// display 10 elements of the result matrix to verify correctness
 	cout << "Result matrix: " << endl;
 	for(i=0; i<1; i++)
-	{	for(j=0; j<min(10,m_br); j++)
+	{   for(j=0; j<min(10,m_br); j++)
 			cout << phc[j] << " ";
 	}
 
@@ -168,9 +172,8 @@ void OnMultBlock(int m_ar, int m_br, int bkSize)
 	free(pha);
 	free(phb);
 	free(phc);
-    
+	
 }
-
 void handle_error (int retval)
 {
   printf("PAPI error %d: %s\n", retval, PAPI_strerror(retval));
@@ -219,6 +222,42 @@ int main (int argc, char *argv[])
 	ret = PAPI_add_event(EventSet,PAPI_L2_DCM);
 	if (ret != PAPI_OK) cout << "ERROR: PAPI_L2_DCM" << endl;
 
+	/*
+	    for dim in 600:400:3000
+        for block_size in [2, 4, 8, 16, 32, 64, 128, 256, 512]
+            println("Dimensions: $dim")
+            println("Block Size: $block_size")
+            on_mult_block(dim, dim, block_size)
+
+            println("\n\n")
+        end
+    end
+	*/
+
+	for (int dim=600; dim<=3000; dim += 400){
+		for(int bkSize=2; bkSize<=512; bkSize = bkSize*2){
+			cout << "Dim:" << dim << endl;
+			cout << "Block Size:" << bkSize << endl;
+			
+			ret = PAPI_start(EventSet);
+			if (ret != PAPI_OK) cout << "ERROR: Start PAPI" << endl;
+
+			OnMultBlock(dim, dim, bkSize);
+			
+			ret = PAPI_stop(EventSet, values);
+			if (ret != PAPI_OK) cout << "ERROR: Stop PAPI" << endl;
+			printf("L1 DCM: %lld \n",values[0]);
+			printf("L2 DCM: %lld \n",values[1]);
+
+			ret = PAPI_reset( EventSet );
+			if ( ret != PAPI_OK )
+				std::cout << "FAIL reset" << endl; 
+			
+			cout << endl << endl;
+		}
+	}
+
+	/*	
 	for (int dim=4096; dim<=10240; dim += 2048){
 		for(int bkSize=128; bkSize<=512; bkSize = bkSize*2){
 			cout << "Dim:" << dim << endl;
@@ -241,6 +280,7 @@ int main (int argc, char *argv[])
 			cout << endl << endl;
 		}
 	}
+	*/
 
 /*
 	op=1;

@@ -54,7 +54,7 @@ function on_mult_block(m_ar::Int, m_br::Int, block_size::Int)
     pha = ones(Float64, m_ar, m_ar)
     phb = [Float64(i+1) for i in 0:m_br-1]
     phc = zeros(Float64, m_ar, m_br)
-
+    
     elapsed_time = @elapsed begin   
         for blockRowStart in 1:block_size:m_ar
             for blockColStart in 1:block_size:m_br
@@ -64,7 +64,7 @@ function on_mult_block(m_ar::Int, m_br::Int, block_size::Int)
                         for k in blockRowStart:min(blockRowStart + block_size - 1, m_ar)
                             temp += pha[i, k] * phb[k]
                         end
-                        phc[i, j] = temp
+                        phc[i, j] += temp
                     end
                 end
             end
@@ -92,8 +92,8 @@ function main()
     end
     =#
 
-    for dim in 4096:2048:10240
-        for block_size in [128, 256, 512]
+    for dim in 600:400:3000
+        for block_size in [2, 4, 8, 16, 32, 64, 128, 256, 512]
             println("Dimensions: $dim")
             println("Block Size: $block_size")
             on_mult_block(dim, dim, block_size)
