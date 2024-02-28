@@ -1,10 +1,9 @@
 # CPD Projects
 
-CPD Projects of group T&lt;m&gt;&lt;n&gt;G&lt;p&gt;&lt;q&gt;.
+CPD Projects of group T10G11.
 
 Group members:
 
-1. &lt;first name&gt; &lt;family name&gt; (&lt;email address&gt;)
-2. &lt;first name&gt; &lt;family name&gt; (&lt;email address&gt;)
-3. &lt;first name&gt; &lt;family name&gt; (&lt;email address&gt;)
-4. &lt;first name&gt; &lt;family name&gt; (&lt;email address&gt;)
+1. &lt;Adriano&gt; &lt;Machado&gt; (&lt;up202105352@fe.up.pt&gt;)
+2. &lt;André&gt; &lt;Rodrigues&gt; (&lt;up202108721@fe.up.pt&gt;)
+3. &lt;Daniel&gt; &lt;Pinto&gt; (&lt;up202108808@fe.up.pt&gt;)
