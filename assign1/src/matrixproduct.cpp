@@ -4,13 +4,15 @@
 #include <time.h>
 #include <cstdlib>
 #include <papi.h>
+#include <fstream>
+#include <omp.h>
 
 using namespace std;
 
 #define SYSTEMTIME clock_t
 
  
-void OnMult(int m_ar, int m_br) {
+double OnMult(int m_ar, int m_br) {
 	SYSTEMTIME Time1, Time2;
 	
 	char st[100];
@@ -60,9 +62,11 @@ void OnMult(int m_ar, int m_br) {
     free(pha);
     free(phb);
     free(phc);	
+
+	return (double)(Time2 - Time1) / CLOCKS_PER_SEC;
 }
 
-void OnMultLine(int m_ar, int m_br){
+double OnMultLine(int m_ar, int m_br){
 	SYSTEMTIME Time1, Time2;
 	
 	char st[100];
@@ -86,13 +90,13 @@ void OnMultLine(int m_ar, int m_br){
     Time1 = clock();
 
 	for(i=0; i<m_ar; i++)
-	{	for( k=0; k<m_ar; k++)
-		{	temp = 0;
+	{	
+		for( k=0; k<m_ar; k++)
+		{	
 			for( j=0; j<m_br; j++)
 			{	
-				temp += pha[i*m_ar+k] * phb[k*m_br+j];
+				phc[i*m_ar+j] += pha[i*m_ar+k] * phb[k*m_br+j];
 			}
-			phc[i*m_ar+j]=temp;
 		}
 	}
 
@@ -110,11 +114,13 @@ void OnMultLine(int m_ar, int m_br){
 
     free(pha);
     free(phb);
-    free(phc);	    
+    free(phc);	 
+
+	return (double)(Time2 - Time1) / CLOCKS_PER_SEC;   
 }
 
 // add code here for block x block matriz multiplication
-void OnMultBlock(int m_ar, int m_br, int bkSize)
+double OnMultBlock(int m_ar, int m_br, int bkSize)
 {
 	clock_t Time1, Time2;
 	
@@ -150,7 +156,7 @@ void OnMultBlock(int m_ar, int m_br, int bkSize)
 					for (k = blockRowStart; k < min(blockRowStart + bkSize, m_ar); k++){
 						temp += pha[i * m_ar + k] * phb[k * m_br + j];
 					}
-					phc[i * m_ar + j] += temp;  // Change this line
+					phc[i * m_ar + j] += temp;  
 				}
 			}
 		}
@@ -173,7 +179,106 @@ void OnMultBlock(int m_ar, int m_br, int bkSize)
 	free(phb);
 	free(phc);
 	
+	return (double)(Time2 - Time1) / CLOCKS_PER_SEC;
 }
+
+double OnMultLineParallel_1(int m_ar, int m_br){
+    double temp;
+    int i, j, k;
+
+    double *pha, *phb, *phc;
+        
+    pha = (double *)malloc((m_ar * m_ar) * sizeof(double));
+    phb = (double *)malloc((m_ar * m_ar) * sizeof(double));
+    phc = (double *)malloc((m_ar * m_ar) * sizeof(double));
+
+    for(i=0; i<m_ar; i++)
+        for(j=0; j<m_ar; j++)
+            pha[i*m_ar + j] = (double)1.0;
+
+    for(i=0; i<m_br; i++)
+        for(j=0; j<m_br; j++)
+            phb[i*m_br + j] = (double)(i+1);
+
+    double Time1 = omp_get_wtime();
+
+    #pragma omp parallel for private(j, k)
+    for(i=0; i<m_ar; i++){   
+        for( k=0; k<m_ar; k++){   
+            for( j=0; j<m_br; j++){   
+                phc[i*m_ar+j] += pha[i*m_ar+k] * phb[k*m_br+j];
+            }
+        }
+    }
+
+    double Time2 = omp_get_wtime();
+    printf("Time: %3.3f seconds\n", Time2 - Time1);
+
+    // display 10 elements of the result matrix to verify correctness
+    std::cout << "Result matrix: " << std::endl;
+    for(i=0; i<1; i++)
+    {   for(j=0; j<std::min(10,m_br); j++)
+            std::cout << phc[j] << " ";
+    }
+    std::cout << std::endl;
+
+    free(pha);
+    free(phb);
+    free(phc);     
+
+    return Time2 - Time1;   
+}
+
+double OnMultLineParallel_2(int m_ar, int m_br){
+	double temp;
+	int i, j, k;
+
+	double *pha, *phb, *phc;
+		
+	pha = (double *)malloc((m_ar * m_ar) * sizeof(double));
+	phb = (double *)malloc((m_ar * m_ar) * sizeof(double));
+	phc = (double *)malloc((m_ar * m_ar) * sizeof(double));
+
+	for(i=0; i<m_ar; i++)
+		for(j=0; j<m_ar; j++)
+			pha[i*m_ar + j] = (double)1.0;
+
+	for(i=0; i<m_br; i++)
+		for(j=0; j<m_br; j++)
+			phb[i*m_br + j] = (double)(i+1);
+
+	double Time1 = omp_get_wtime();
+
+	#pragma omp parallel 
+    for(i=0; i<m_ar; i++){   
+        for( k=0; k<m_ar; k++){   
+            #pragma omp for 
+            for( j=0; j<m_br; j++){   
+                {
+                    phc[i*m_ar+j] += pha[i*m_ar+k] * phb[k*m_br+j];
+                }
+            }
+        }
+    }
+
+	double Time2 = omp_get_wtime();
+	printf("Time: %3.3f seconds\n", Time2 - Time1);
+
+	// display 10 elements of the result matrix to verify correctness
+	std::cout << "Result matrix: " << std::endl;
+	for(i=0; i<1; i++)
+	{   for(j=0; j<std::min(10,m_br); j++)
+			std::cout << phc[j] << " ";
+	}
+	std::cout << std::endl;
+
+	free(pha);
+	free(phb);
+	free(phc);     
+
+	return Time2 - Time1;   
+}
+
 void handle_error (int retval)
 {
   printf("PAPI error %d: %s\n", retval, PAPI_strerror(retval));
@@ -222,114 +327,108 @@ int main (int argc, char *argv[])
 	ret = PAPI_add_event(EventSet,PAPI_L2_DCM);
 	if (ret != PAPI_OK) cout << "ERROR: PAPI_L2_DCM" << endl;
 
-	/*
-	    for dim in 600:400:3000
-        for block_size in [2, 4, 8, 16, 32, 64, 128, 256, 512]
-            println("Dimensions: $dim")
-            println("Block Size: $block_size")
-            on_mult_block(dim, dim, block_size)
+	
+	//From 600 to 3000, step 400 (OnMultLine)
+	ofstream outputFile;
+	outputFile.open("resultsMultLineCpp.csv");
+	if (!outputFile.is_open()) {
+		cout << "Error: Unable to open the file for writing." << endl;
+		return 1;
+	}
 
-            println("\n\n")
-        end
-    end
-	*/
+	outputFile << "Try,Dimension,Time,L1_DCM,L2_DCM" << endl;
 
-	for (int dim=600; dim<=3000; dim += 400){
-		for(int bkSize=2; bkSize<=512; bkSize = bkSize*2){
-			cout << "Dim:" << dim << endl;
-			cout << "Block Size:" << bkSize << endl;
-			
-			ret = PAPI_start(EventSet);
-			if (ret != PAPI_OK) cout << "ERROR: Start PAPI" << endl;
+	
+	//From 4096 to 10240, step 2048 (OnMultLine)
+	for (int trial = 0; trial < 10; trial++) {
+		for (int dim = 600; dim <= 3000; dim += 400) {
+				cout << "Trial:" << trial << endl;
+				cout << "Dim:" << dim << endl;
 
-			OnMultBlock(dim, dim, bkSize);
-			
-			ret = PAPI_stop(EventSet, values);
-			if (ret != PAPI_OK) cout << "ERROR: Stop PAPI" << endl;
-			printf("L1 DCM: %lld \n",values[0]);
-			printf("L2 DCM: %lld \n",values[1]);
+				ret = PAPI_start(EventSet);
+				if (ret != PAPI_OK) cout << "ERROR: Start PAPI" << endl;
 
-			ret = PAPI_reset( EventSet );
-			if ( ret != PAPI_OK )
-				std::cout << "FAIL reset" << endl; 
-			
-			cout << endl << endl;
+				double elapsed_time = OnMultLine(dim, dim);
+
+				ret = PAPI_stop(EventSet, values);
+				if (ret != PAPI_OK) cout << "ERROR: Stop PAPI" << endl;
+
+				// Write results to the CSV file
+				outputFile << trial << "," << dim << "," << elapsed_time << "," << values[0] << "," << values[1] << endl;
+
+				ret = PAPI_reset(EventSet);
+				if (ret != PAPI_OK)
+					std::cout << "FAIL reset" << endl;
+
+				cout << endl
+					<< endl;
 		}
 	}
 
-	/*	
-	for (int dim=4096; dim<=10240; dim += 2048){
-		for(int bkSize=128; bkSize<=512; bkSize = bkSize*2){
-			cout << "Dim:" << dim << endl;
-			cout << "Block Size:" << bkSize << endl;
+	for (int trial = 0; trial < 10; trial++) {
+		for (int dim = 4096; dim <= 10240; dim += 2048) {
+				cout << "Trial:" << trial << endl;
+				cout << "Dim:" << dim << endl;
 
-			ret = PAPI_start(EventSet);
-			if (ret != PAPI_OK) cout << "ERROR: Start PAPI" << endl;
+				ret = PAPI_start(EventSet);
+				if (ret != PAPI_OK) cout << "ERROR: Start PAPI" << endl;
 
-			OnMult(dim, dim);
+				double elapsed_time = OnMultLine(dim, dim);
 
-			ret = PAPI_stop(EventSet, values);
-			if (ret != PAPI_OK) cout << "ERROR: Stop PAPI" << endl;
-			printf("L1 DCM: %lld \n",values[0]);
-			printf("L2 DCM: %lld \n",values[1]);
+				ret = PAPI_stop(EventSet, values);
+				if (ret != PAPI_OK) cout << "ERROR: Stop PAPI" << endl;
 
-			ret = PAPI_reset( EventSet );
-			if ( ret != PAPI_OK )
-				std::cout << "FAIL reset" << endl; 
-			
-			cout << endl << endl;
+				// Write results to the CSV file
+				outputFile << trial << "," << dim << "," << elapsed_time << "," << values[0] << "," << values[1] << endl;
+
+				ret = PAPI_reset(EventSet);
+				if (ret != PAPI_OK)
+					std::cout << "FAIL reset" << endl;
+
+				cout << endl
+					<< endl;
 		}
 	}
-	*/
 
-/*
-	op=1;
-	do {
-		cout << endl << "1. Multiplication" << endl;
-		cout << "2. Line Multiplication" << endl;
-		cout << "3. Block Multiplication" << endl;
-		cout << "Selection?: ";
-		cin >>op;
-		if (op == 0)
-			break;
-		printf("Dimensions: lins=cols ? ");
-   		cin >> lin;
-   		col = lin;
+	outputFile.close();
 
+	//From 4096 to 10240 with intervals of 2048 for block sizes (128,256,512) (OnMultBlock)
+	outputFile.open("resultsMultBlockCpp.csv");
+	if (!outputFile.is_open()) {
+		cout << "Error: Unable to open the file for writing." << endl;
+		return 1;
+	}
 
-		// Start counting
-		ret = PAPI_start(EventSet);
-		if (ret != PAPI_OK) cout << "ERROR: Start PAPI" << endl;
+	outputFile << "Try, Dimension,BlockSize,Time,L1_DCM,L2_DCM" << endl;
+	for (int trial = 0; trial < 10; trial++){
+		for (int dim = 4096; dim <= 10240; dim += 2048) {
+			for (int blkSize = 128; blkSize <= 512; blkSize *= 2) {
+				cout << "Dim:" << dim << endl;
+				cout << "BlockSize:" << blkSize << endl;
 
-		switch (op){
-			case 1: 
-				OnMult(lin, col);
-				break;
-			case 2:
-				OnMultLine(lin, col);  
-				break;
-			case 3:
-				cout << "Block Size? ";
-				cin >> blockSize;
-				OnMultBlock(lin, col, blockSize);  
-				break;
+				ret = PAPI_start(EventSet);
+				if (ret != PAPI_OK) cout << "ERROR: Start PAPI" << endl;
 
+				double elapsed_time = OnMultBlock(dim, dim, blkSize);
+
+				ret = PAPI_stop(EventSet, values);
+				if (ret != PAPI_OK) cout << "ERROR: Stop PAPI" << endl;
+
+				// Write results to the CSV file
+				outputFile << dim << "," << blkSize << "," << elapsed_time << "," << values[0] << "," << values[1] << endl;
+
+				ret = PAPI_reset(EventSet);
+				if (ret != PAPI_OK)
+					std::cout << "FAIL reset" << endl;
+
+				cout << endl
+					<< endl;
+			}
 		}
+	}
+	outputFile.close();
 
-  		ret = PAPI_stop(EventSet, values);
-  		if (ret != PAPI_OK) cout << "ERROR: Stop PAPI" << endl;
-  		printf("L1 DCM: %lld \n",values[0]);
-  		printf("L2 DCM: %lld \n",values[1]);
-
-		ret = PAPI_reset( EventSet );
-		if ( ret != PAPI_OK )
-			std::cout << "FAIL reset" << endl; 
-
-
-
-	}while (op != 0);
-*/
-
+	
 	ret = PAPI_remove_event( EventSet, PAPI_L1_DCM );
 	if ( ret != PAPI_OK )
 		std::cout << "FAIL remove event" << endl; 
@@ -341,5 +440,4 @@ int main (int argc, char *argv[])
 	ret = PAPI_destroy_eventset( &EventSet );
 	if ( ret != PAPI_OK )
 		std::cout << "FAIL destroy" << endl;
-
 }
