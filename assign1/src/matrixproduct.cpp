@@ -328,7 +328,40 @@ int main (int argc, char *argv[])
 	if (ret != PAPI_OK) cout << "ERROR: PAPI_L2_DCM" << endl;
 
 	ofstream outputFile;
-	/*
+
+	outputFile.open("resultsMultCpp.csv");
+	if (!outputFile.is_open()) {
+		cout << "Error: Unable to open the file for writing." << endl;
+		return 1;
+	}
+
+	outputFile << "Try,Dimension,Time,L1_DCM,L2_DCM" << endl;
+
+	for (int trial = 0; trial < 10; trial++) {
+		for (int dim = 600; dim <= 3000; dim += 400) {
+				cout << "Trial:" << trial << endl;
+				cout << "Dim:" << dim << endl;
+
+				ret = PAPI_start(EventSet);
+				if (ret != PAPI_OK) cout << "ERROR: Start PAPI" << endl;
+
+				double elapsed_time = OnMult(dim, dim);
+
+				ret = PAPI_stop(EventSet, values);
+				if (ret != PAPI_OK) cout << "ERROR: Stop PAPI" << endl;
+
+				// Write results to the CSV file
+				outputFile << trial << "," << dim << "," << elapsed_time << "," << values[0] << "," << values[1] << endl;
+
+				ret = PAPI_reset(EventSet);
+				if (ret != PAPI_OK)
+					std::cout << "FAIL reset" << endl;
+
+				cout << endl
+					<< endl;
+		}
+	}
+
 	//From 600 to 3000, step 400 (OnMultLine)
 	outputFile.open("resultsMultLineCpp.csv");
 	if (!outputFile.is_open()) {
@@ -390,7 +423,6 @@ int main (int argc, char *argv[])
 	}
 
 	outputFile.close();
-	*/
 
 	//From 4096 to 10240 with intervals of 2048 for block sizes (128,256,512) (OnMultBlock)
 	outputFile.open("resultsMultBlockCpp.csv");
