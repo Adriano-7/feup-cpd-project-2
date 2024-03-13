@@ -148,15 +148,15 @@ double OnMultBlock(int m_ar, int m_br, int bkSize)
 
 	Time1 = clock();
 
-	for (blockRowStart = 0; blockRowStart < m_ar; blockRowStart += bkSize){
-		for (blockColStart = 0; blockColStart < m_br; blockColStart += bkSize){
-			for (i = 0; i < m_ar; i++){
-				for (j = blockColStart; j < min(blockColStart + bkSize, m_br); j++){
-					temp = 0;
-					for (k = blockRowStart; k < min(blockRowStart + bkSize, m_ar); k++){
-						temp += pha[i * m_ar + k] * phb[k * m_br + j];
+	for (int rowBlockStart = 0; rowBlockStart < m_ar; rowBlockStart += bkSize){
+		for (int colBlockStart = 0; colBlockStart < m_ar; colBlockStart += bkSize){
+			for (int innerBlockStart = 0; innerBlockStart < m_ar; innerBlockStart += bkSize){
+				for (int row = rowBlockStart; row < rowBlockStart + bkSize; row++){
+					for (int col = colBlockStart; col < colBlockStart + bkSize; col++){
+						for (int inner = innerBlockStart; inner < innerBlockStart + bkSize; inner++){
+							phc[row*m_ar + inner] += pha[row*m_ar + col] * phb[col*m_br + inner];
+						}
 					}
-					phc[i * m_ar + j] += temp;  
 				}
 			}
 		}
@@ -327,9 +327,9 @@ int main (int argc, char *argv[])
 	ret = PAPI_add_event(EventSet,PAPI_L2_DCM);
 	if (ret != PAPI_OK) cout << "ERROR: PAPI_L2_DCM" << endl;
 
-	
-	//From 600 to 3000, step 400 (OnMultLine)
 	ofstream outputFile;
+	/*
+	//From 600 to 3000, step 400 (OnMultLine)
 	outputFile.open("resultsMultLineCpp.csv");
 	if (!outputFile.is_open()) {
 		cout << "Error: Unable to open the file for writing." << endl;
@@ -338,7 +338,6 @@ int main (int argc, char *argv[])
 
 	outputFile << "Try,Dimension,Time,L1_DCM,L2_DCM" << endl;
 
-	
 	//From 4096 to 10240, step 2048 (OnMultLine)
 	for (int trial = 0; trial < 10; trial++) {
 		for (int dim = 600; dim <= 3000; dim += 400) {
@@ -391,6 +390,7 @@ int main (int argc, char *argv[])
 	}
 
 	outputFile.close();
+	*/
 
 	//From 4096 to 10240 with intervals of 2048 for block sizes (128,256,512) (OnMultBlock)
 	outputFile.open("resultsMultBlockCpp.csv");
@@ -403,6 +403,7 @@ int main (int argc, char *argv[])
 	for (int trial = 0; trial < 10; trial++){
 		for (int dim = 4096; dim <= 10240; dim += 2048) {
 			for (int blkSize = 128; blkSize <= 512; blkSize *= 2) {
+				cout << "Trial:" << trial << endl;
 				cout << "Dim:" << dim << endl;
 				cout << "BlockSize:" << blkSize << endl;
 
@@ -415,7 +416,7 @@ int main (int argc, char *argv[])
 				if (ret != PAPI_OK) cout << "ERROR: Stop PAPI" << endl;
 
 				// Write results to the CSV file
-				outputFile << dim << "," << blkSize << "," << elapsed_time << "," << values[0] << "," << values[1] << endl;
+				outputFile << trial << "," << dim << "," << blkSize << "," << elapsed_time << "," << values[0] << "," << values[1] << endl;
 
 				ret = PAPI_reset(EventSet);
 				if (ret != PAPI_OK)
