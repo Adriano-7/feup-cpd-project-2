@@ -86,6 +86,7 @@ function main()
     outputFile = open("resultsMultJulia.csv", "w")
     println(outputFile, "Try,Dimension,Time,L1_DCM,L2_DCM")
 
+    #=
     for trial in 0:9
         # From 600 to 3000, step 400 (OnMult)
         for dim in 600:400:3000
@@ -100,7 +101,7 @@ function main()
             println()
         end
     end
-
+=#
     # From 600 to 3000, step 400 (OnMultLine)
     outputFile = open("resultsMultLineJulia.csv", "w")
     println(outputFile, "Try,Dimension,Time")
@@ -117,7 +118,7 @@ function main()
             println()
         end
     end
-
+#=
     # From 4096 to 10240 with intervals of 2048 for block sizes (128, 256, 512) (OnMultBlock)
     outputFile = open("resultsMultBlockJulia.csv", "w")
     println(outputFile, "Try,Dimension,BlockSize,Time")
@@ -136,7 +137,7 @@ function main()
             end
         end
     end
-
+=#
     close(outputFile)
 end
 

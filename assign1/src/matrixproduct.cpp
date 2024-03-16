@@ -11,7 +11,6 @@ using namespace std;
 
 #define SYSTEMTIME clock_t
 
- 
 double OnMult(int m_ar, int m_br) {
 	SYSTEMTIME Time1, Time2;
 	
@@ -51,7 +50,6 @@ double OnMult(int m_ar, int m_br) {
 	sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
 	cout << st;
 
-	// display 10 elements of the result matrix tto verify correctness
 	cout << "Result matrix: " << endl;
 	for(i=0; i<1; i++)
 	{	for(j=0; j<min(10,m_br); j++)
@@ -104,7 +102,6 @@ double OnMultLine(int m_ar, int m_br){
 	sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
 	cout << st;
 
-	// display 10 elements of the result matrix tto verify correctness
 	cout << "Result matrix: " << endl;
 	for(i=0; i<1; i++)
 	{	for(j=0; j<min(10,m_br); j++)
@@ -119,7 +116,6 @@ double OnMultLine(int m_ar, int m_br){
 	return (double)(Time2 - Time1) / CLOCKS_PER_SEC;   
 }
 
-// add code here for block x block matriz multiplication
 double OnMultBlock(int m_ar, int m_br, int bkSize)
 {
 	clock_t Time1, Time2;
@@ -166,7 +162,6 @@ double OnMultBlock(int m_ar, int m_br, int bkSize)
 	sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
 	cout << st;
 
-	// display 10 elements of the result matrix to verify correctness
 	cout << "Result matrix: " << endl;
 	for(i=0; i<1; i++)
 	{   for(j=0; j<min(10,m_br); j++)
@@ -202,7 +197,10 @@ double OnMultLineParallel_1(int m_ar, int m_br){
 
     double Time1 = omp_get_wtime();
 
-    #pragma omp parallel for private(j, k)
+	int num_threads = omp_get_max_threads();
+    std::cout << "Number of threads: " << num_threads << std::endl;
+
+    #pragma omp parallel for num_threads(num_threads) private(j, k)
     for(i=0; i<m_ar; i++){   
         for( k=0; k<m_ar; k++){   
             for( j=0; j<m_br; j++){   
@@ -214,7 +212,6 @@ double OnMultLineParallel_1(int m_ar, int m_br){
     double Time2 = omp_get_wtime();
     printf("Time: %3.3f seconds\n", Time2 - Time1);
 
-    // display 10 elements of the result matrix to verify correctness
     std::cout << "Result matrix: " << std::endl;
     for(i=0; i<1; i++)
     {   for(j=0; j<std::min(10,m_br); j++)
@@ -249,7 +246,10 @@ double OnMultLineParallel_2(int m_ar, int m_br){
 
 	double Time1 = omp_get_wtime();
 
-	#pragma omp parallel 
+	int num_threads = omp_get_max_threads();
+    std::cout << "Number of threads: " << num_threads << std::endl;
+
+	#pragma omp parallel private(i, j, k) num_threads(num_threads)
     for(i=0; i<m_ar; i++){   
         for( k=0; k<m_ar; k++){   
             #pragma omp for 
@@ -264,7 +264,6 @@ double OnMultLineParallel_2(int m_ar, int m_br){
 	double Time2 = omp_get_wtime();
 	printf("Time: %3.3f seconds\n", Time2 - Time1);
 
-	// display 10 elements of the result matrix to verify correctness
 	std::cout << "Result matrix: " << std::endl;
 	for(i=0; i<1; i++)
 	{   for(j=0; j<std::min(10,m_br); j++)
@@ -329,6 +328,7 @@ int main (int argc, char *argv[])
 
 	ofstream outputFile;
 
+	/*
 	outputFile.open("resultsMultCpp.csv");
 	if (!outputFile.is_open()) {
 		cout << "Error: Unable to open the file for writing." << endl;
@@ -350,7 +350,6 @@ int main (int argc, char *argv[])
 				ret = PAPI_stop(EventSet, values);
 				if (ret != PAPI_OK) cout << "ERROR: Stop PAPI" << endl;
 
-				// Write results to the CSV file
 				outputFile << trial << "," << dim << "," << elapsed_time << "," << values[0] << "," << values[1] << endl;
 
 				ret = PAPI_reset(EventSet);
@@ -385,7 +384,6 @@ int main (int argc, char *argv[])
 				ret = PAPI_stop(EventSet, values);
 				if (ret != PAPI_OK) cout << "ERROR: Stop PAPI" << endl;
 
-				// Write results to the CSV file
 				outputFile << trial << "," << dim << "," << elapsed_time << "," << values[0] << "," << values[1] << endl;
 
 				ret = PAPI_reset(EventSet);
@@ -410,7 +408,6 @@ int main (int argc, char *argv[])
 				ret = PAPI_stop(EventSet, values);
 				if (ret != PAPI_OK) cout << "ERROR: Stop PAPI" << endl;
 
-				// Write results to the CSV file
 				outputFile << trial << "," << dim << "," << elapsed_time << "," << values[0] << "," << values[1] << endl;
 
 				ret = PAPI_reset(EventSet);
@@ -447,7 +444,6 @@ int main (int argc, char *argv[])
 				ret = PAPI_stop(EventSet, values);
 				if (ret != PAPI_OK) cout << "ERROR: Stop PAPI" << endl;
 
-				// Write results to the CSV file
 				outputFile << trial << "," << dim << "," << blkSize << "," << elapsed_time << "," << values[0] << "," << values[1] << endl;
 
 				ret = PAPI_reset(EventSet);
@@ -461,7 +457,53 @@ int main (int argc, char *argv[])
 	}
 	outputFile.close();
 
-	
+		
+	outputFile.open("resultsMultLineParallel_1.csv");
+	if (!outputFile.is_open()) {
+		cout << "Error: Unable to open the file for writing." << endl;
+		return 1;
+	}
+
+	outputFile << "Try,Dimension,Time" << endl;
+	for (int trial = 0; trial < 10; trial++){
+		for (int dim = 4096; dim <= 10240; dim += 2048) {
+			cout << "Trial:" << trial << endl;
+			cout << "Dim:" << dim << endl;
+
+			double elapsed_time = OnMultLineParallel_1(dim, dim);
+
+			outputFile << trial << "," << dim << "," << elapsed_time << endl;
+
+			cout << endl
+				<< endl;
+		}
+	}
+	outputFile.close();
+*/
+
+	outputFile.open("resultsMultLineParallel_2.csv");
+	if (!outputFile.is_open()) {
+		cout << "Error: Unable to open the file for writing." << endl;
+		return 1;
+	}
+
+	outputFile << "Try,Dimension,Time" << endl;
+	for (int trial = 0; trial < 10; trial++){
+		for (int dim = 4096; dim <= 10240; dim += 2048) {
+			cout << "Trial:" << trial << endl;
+			cout << "Dim:" << dim << endl;
+
+			double elapsed_time = OnMultLineParallel_2(dim, dim);
+
+			outputFile << trial << "," << dim << "," << elapsed_time << endl;
+
+			cout << endl
+				<< endl;
+		}
+	}
+
+	outputFile.close();
+
 	ret = PAPI_remove_event( EventSet, PAPI_L1_DCM );
 	if ( ret != PAPI_OK )
 		std::cout << "FAIL remove event" << endl; 
