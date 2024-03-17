@@ -1,14 +1,14 @@
 function on_mult(m_ar::Int, m_br::Int)
     pha = fill(1.0, m_ar, m_ar)
     phb = [i + 1 for i in 0:m_br-1, j in 0:m_br-1]
-    phc = zeros(m_ar, m_br)
+    phc = fill(1.0, m_ar, m_ar)
 
     elapsed_time = @elapsed begin
         for i in 1:m_ar
             for j in 1:m_br
                 temp = 0.0
                 for k in 1:m_ar
-                    temp += pha[i, k] * phb[k, j]  # Corrected this line
+                    temp += pha[i, k] * phb[k, j]
                 end
                 phc[i, j] = temp
             end
@@ -30,7 +30,7 @@ end
 function on_mult_line(m_ar::Int, m_br::Int)
     pha = fill(1.0, m_ar, m_ar)
     phb = [i + 1 for i in 0:m_br-1, j in 0:m_br-1]
-    phc = zeros(m_ar, m_ar)
+    phc = fill(1.0, m_ar, m_ar)
 
     elapsed_time = @elapsed begin
         for i in 1:m_ar
