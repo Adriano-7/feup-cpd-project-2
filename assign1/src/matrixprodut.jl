@@ -69,7 +69,7 @@ function main()
     outputFile = open("resultsMultJulia.csv", "w")
     println(outputFile, "Try,Dimension,Time")
 
-    for trial in 0:1
+    for trial in 0:10
         # From 600 to 3000, step 400 (OnMult)
         for dim in 600:400:3000
             println("Trial: $trial")
@@ -88,7 +88,7 @@ function main()
     outputFile = open("resultsMultLineJulia.csv", "w")
     println(outputFile, "Try,Dimension,Time")
 
-    for trial in 0:1
+    for trial in 0:10
         for dim in 600:400:3000
             println("Trial: $trial")
             println("Dimension: $dim")
