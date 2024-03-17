@@ -15,11 +15,11 @@ mL0_cut = mL0[mL0['Dimension'] > 4000].dropna()
 x_values_cut = mLP1['Dimension'].unique()
 x_values = mL0['Dimension'].unique()
 
-plt.plot(mL0_cut['Dimension'], mL0_cut['Time'], marker='o', label='ML0')
-plt.plot(mLP1['Dimension'], mLP1['Time'], marker='o', label='MLP1')
-plt.plot(mLP2['Dimension'], mLP2['Time'], marker='o', label='MLP2')
+plt.plot(mL0_cut['Dimension'], mL0_cut['Time'], marker='o', label='MultLine')
+plt.plot(mLP1['Dimension'], mLP1['Time'], marker='o', label='MultLineP1')
+plt.plot(mLP2['Dimension'], mLP2['Time'], marker='o', label='MultLineP2')
 
-plt.title('Mean execution Time per Dimension')
+plt.title('Average Execution Time of each Implementation')
 plt.xlabel('Dimension')
 plt.ylabel('Execution Time(s)')
 
@@ -29,8 +29,8 @@ plt.legend(loc='best')
 
 plt.show()
 
-plt.plot(mLP1['Dimension'], mLP1['MFlops'], marker='o', label='MLP1')
-plt.plot(mLP2['Dimension'], mLP2['MFlops'], marker='o', label='MLP2')
+plt.plot(mLP1['Dimension'], mLP1['MFlops'], marker='o', label='MultLineP1')
+plt.plot(mLP2['Dimension'], mLP2['MFlops'], marker='o', label='MultLineP2')
 
 plt.title('MFlops per Dimension')
 plt.xlabel('Dimension')
@@ -45,7 +45,7 @@ plt.show()
 plt.plot(mLP1['Dimension'], mLP1['Speedup'], marker='o', label='MLP1')
 plt.plot(mLP2['Dimension'], mLP2['Speedup'], marker='o', label='MLP2')
 
-plt.title('Speedup per Dimension')
+plt.title('Speedup of each Parallelized Implementation')
 plt.xlabel('Dimension')
 plt.ylabel('Speedup')
 
@@ -55,10 +55,10 @@ plt.legend(loc='best')
 
 plt.show()
 
-plt.plot(mLP1['Dimension'], mLP1['Efficiency'], marker='o', label='MLP1')
-plt.plot(mLP2['Dimension'], mLP2['Efficiency'], marker='o', label='MLP2')
+plt.plot(mLP1['Dimension'], mLP1['Efficiency'], marker='o', label='MultLineP1')
+plt.plot(mLP2['Dimension'], mLP2['Efficiency'], marker='o', label='MultLineP2')
 
-plt.title('Efficiency per Dimension')
+plt.title('Efficiency of each Parallelized Implementation')
 plt.xlabel('Dimension')
 plt.ylabel('Efficiency')
 
