@@ -457,7 +457,7 @@ int main (int argc, char *argv[])
 	}
 	outputFile.close();
 
-*/
+
 
 	outputFile.open("resultsMultLineParallel_1.csv");
 	if (!outputFile.is_open()) {
@@ -466,7 +466,7 @@ int main (int argc, char *argv[])
 	}
 
 	outputFile << "Try,Dimension,Time,L1_DCM,L2_DCM,FLOPS" << endl;
-	for (int trial = 0; trial < 1/*0*/; trial++){
+	for (int trial = 0; trial < 10; trial++){
 		for (int dim = 4096; dim <= 10240; dim += 2048) {
 			cout << "Trial:" << trial << endl;
 			cout << "Dim:" << dim << endl;
@@ -488,7 +488,7 @@ int main (int argc, char *argv[])
 		}
 	}
 	outputFile.close();
-
+*/
 	outputFile.open("resultsMultLineParallel_2.csv");
 	if (!outputFile.is_open()) {
 		cout << "Error: Unable to open the file for writing." << endl;
@@ -496,7 +496,7 @@ int main (int argc, char *argv[])
 	}
 
 	outputFile << "Try,Dimension,Time,L1_DCM,L2_DCM,FLOPS" << endl;
-	for (int trial = 0; trial < 1/*0*/; trial++){
+	for (int trial = 0; trial < 10; trial++){
 		for (int dim = 4096; dim <= 10240; dim += 2048) {
 			cout << "Trial:" << trial << endl;
 			cout << "Dim:" << dim << endl;
