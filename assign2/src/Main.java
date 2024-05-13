@@ -1,3 +1,6 @@
+import client.Client;
+import server.Server;
+
 import java.io.IOException;
 import java.util.Scanner;
 
@@ -10,19 +13,13 @@ public class Main {
         System.out.print("Enter your choice (1/2): ");
 
         int choice = scanner.nextInt();
-        scanner.nextLine(); // Consume newline left-over
+        scanner.nextLine();
 
         if (choice == 1) {
-            System.out.print("Enter port number: ");
-            int port = scanner.nextInt();
-            server.TimeServer.main(new String[]{String.valueOf(port)});
+            Server.main(args);
         }
         else if (choice == 2) {
-            System.out.print("Enter server hostname: ");
-            String host = scanner.nextLine();
-            System.out.print("Enter port number: ");
-            int port = scanner.nextInt();
-            client.TimeClient.main(new String[]{host, String.valueOf(port)});
+            Client.main();
         } else {
             System.out.println("Invalid choice. Exiting.");
         }
