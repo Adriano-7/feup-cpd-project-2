@@ -1,3 +1,5 @@
+package server;
+
 import java.io.*;
 import java.net.*;
 import java.util.Date;
@@ -6,7 +8,7 @@ public class TimeServer {
     public static void main(String[] args) throws IOException {
 
         if (args.length != 1) {
-            System.err.println("Usage: java TimeServer <port>");
+            System.err.println("Usage: java server.TimeServer <port>");
             System.exit(1);
         }
 

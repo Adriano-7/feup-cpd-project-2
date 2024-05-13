@@ -1,3 +1,5 @@
+package client;
+
 import java.net.*;
 import java.io.*;
  
@@ -5,7 +7,7 @@ public class TimeClient {
     public static void main(String[] args) throws IOException {
         if (args.length != 2) {
             System.err.println(
-                    "Usage: java TimeClient localhost <port>");
+                    "Usage: java client.TimeClient localhost <port>");
             System.exit(1);
         }
         String hostName = args[0];
