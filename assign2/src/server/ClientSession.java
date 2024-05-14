@@ -30,7 +30,7 @@ public class ClientSession implements Runnable {
         try {
             this.reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             this.writer = new PrintWriter(clientSocket.getOutputStream(), true);
-            writer.println("Welcome to the server.");
+            writer.println("-------------------------\nWelcome to the server.\n-------------------------\n");
             handleInput("");
         }  catch (IOException e) {
             System.out.println("Exception creating reader and writer: " + e.getMessage());

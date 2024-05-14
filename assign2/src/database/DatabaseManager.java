@@ -20,6 +20,30 @@ public class DatabaseManager {
         }
     }
 
+    public boolean verifyUsername(String username) {
+        readLock.lock();
+        try (BufferedReader reader = Files.newBufferedReader(Paths.get(DATABASE_FILE))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts[0].equals(username)) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (FileNotFoundException e) {
+            System.out.println("The database file was not found: " + e.getMessage());
+            e.printStackTrace();
+        } catch (IOException e) {
+            System.out.println("There was an issue reading the database file: " + e.getMessage());
+            e.printStackTrace();
+        }
+        finally {
+            readLock.unlock();
+        }
+        return false;
+    }
+
     public boolean verifyPassword(String username, String password) {
 
         readLock.lock();

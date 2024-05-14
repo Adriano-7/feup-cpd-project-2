@@ -24,10 +24,13 @@ public class AuthenticationHandler {
             case AWAITING_USERNAME:
                 if (input != null && !input.trim().isEmpty()) {
                     this.username = input;
-                    this.state = AuthState.AWAITING_PASSWORD;
-                    writer.println("Please enter your password.");
-                } else {
-                    writer.println("Invalid username. Please try again.");
+                    if(databaseManager.verifyUsername(username)){
+                        this.state = AuthState.AWAITING_PASSWORD;
+                        writer.println("Please enter your password.");
+                    }
+                    else {
+                        writer.println("Invalid username. Please try again.");
+                    }
                 }
                 return false;
             case AWAITING_PASSWORD:
@@ -37,7 +40,7 @@ public class AuthenticationHandler {
                         return true;
                     } else {
                         writer.println("Invalid password. Please try again.");
-                        this.state = AuthState.AWAITING_USERNAME;
+                        this.state = AuthState.AWAITING_PASSWORD;
                     }
                 } else {
                     writer.println("Invalid password. Please try again.");
