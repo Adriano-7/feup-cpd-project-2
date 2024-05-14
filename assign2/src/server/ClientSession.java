@@ -30,7 +30,10 @@ public class ClientSession implements Runnable {
         try {
             this.reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             this.writer = new PrintWriter(clientSocket.getOutputStream(), true);
-            writer.println("-------------------------\nWelcome to the server.\n-------------------------\n");
+            writer.println("\n┌═════════════════════════════════════════════┐\n" +
+                             "│            Welcome to the Server!           │\n" +
+                             "└═════════════════════════════════════════════┘\n");
+
             handleInput("");
         }  catch (IOException e) {
             System.out.println("Exception creating reader and writer: " + e.getMessage());
@@ -56,7 +59,9 @@ public class ClientSession implements Runnable {
         switch (state) {
             case INITIAL:
                 //TODO: Handle token
-                writer.println("Please enter your username.");
+                writer.println("┌═════════════════════════════════════════════┐\n" +
+                               "│   Please enter your username.               │\n" +
+                               "└═════════════════════════════════════════════┘");
                 this.state = ClientStateEnum.AUTHENTICATING;
                 break;
             case AUTHENTICATING:
@@ -81,7 +86,11 @@ public class ClientSession implements Runnable {
                 }
                 break;
             case GAME_OVER:
-                writer.println("Game over. Thanks for playing!");
+                writer.println("┌═════════════════════════════════════════════┐\n" +
+                               "│                  GAME OVER                  │\n" +
+                               "├═════════════════════════════════════════════┤\n" +
+                               "│  Thanks for playing!                        │\n" +
+                               "└═════════════════════════════════════════════┘");
                 state = ClientStateEnum.WAITING_ROOM;
                 // Handle left game logic
                 break;
