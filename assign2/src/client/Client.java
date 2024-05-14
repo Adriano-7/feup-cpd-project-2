@@ -33,7 +33,8 @@ public class Client {
     private static void outputLoop(BufferedReader in) {
         try {
             String serverOutput;
-            while ((serverOutput = in.readLine()) != null) {
+            while (true) {
+                serverOutput = in.readLine();
                 System.out.println(serverOutput);
             }
         } catch (IOException e) {

@@ -11,25 +11,27 @@ public class ClientSession implements Runnable {
     private static ArrayList<ClientSession> clientSessions = new ArrayList<>();
     public static Map<UUID,Game> games = new HashMap<>();
     public UUID gameId;
-    private Socket clientSocket;
+    private final Socket clientSocket;
     private BufferedReader reader;
     public PrintWriter writer;
     private ClientStateEnum state;
     private AuthenticationHandler authHandler;
-    private MatchmakingPool matchmakingPool;
+    private final MatchmakingPool matchmakingPool;
     public boolean addedToMatchmakingPool = false;
 
     public ClientSession(Socket clientSocket, MatchmakingPool matchmakingPool) {
         this.clientSocket = clientSocket;
         clientSessions.add(this);
-        this.state = ClientStateEnum.AUTHENTICATING;
+        this.state = ClientStateEnum.INITIAL;
         this.matchmakingPool = matchmakingPool;
+        this.authHandler = new AuthenticationHandler();
         this.gameId = null;
 
         try {
             this.reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             this.writer = new PrintWriter(clientSocket.getOutputStream(), true);
             writer.println("Welcome to the server.");
+            handleInput("");
         }  catch (IOException e) {
             System.out.println("Exception creating reader and writer: " + e.getMessage());
         }
@@ -37,27 +39,26 @@ public class ClientSession implements Runnable {
 
     @Override
     public void run() {
-        try {
-            String inputLine;
-            while ((inputLine = reader.readLine()) != null) {
-                System.out.println(inputLine);
-
-                handleInput(inputLine);
-            }
-        } catch (IOException e) {
-            System.out.println("Exception handling client request: " + e.getMessage());
-        } finally {
+        String input;
+        while (clientSocket.isConnected()) {
             try {
-                clientSocket.close();
+                input = reader.readLine();
+                handleInput(input);
             } catch (IOException e) {
-                System.out.println("Exception closing client socket: " + e.getMessage());
+                System.out.println("Exception handling client request: " + e.getMessage());
+                break;
             }
         }
     }
 
-    private void handleInput(String input) {
-        writer.println("State: " + state);
+    private void handleInput(String input) throws IOException {
+        //writer.println("State: " + state);
         switch (state) {
+            case INITIAL:
+                //TODO: Handle token
+                writer.println("Please enter your username.");
+                this.state = ClientStateEnum.AUTHENTICATING;
+                break;
             case AUTHENTICATING:
                 if (authHandler == null) {
                     authHandler = new AuthenticationHandler();

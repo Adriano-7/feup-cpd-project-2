@@ -1,6 +1,7 @@
 package server;
 
 public enum ClientStateEnum {
+    INITIAL,
     AUTHENTICATING,
     WAITING_ROOM,
     IN_GAME,

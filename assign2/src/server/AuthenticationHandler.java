@@ -1,6 +1,8 @@
 package server;
 
+import java.io.IOException;
 import java.io.PrintWriter;
+import database.DatabaseManager;
 
 public class AuthenticationHandler {
     private enum AuthState {
@@ -10,27 +12,33 @@ public class AuthenticationHandler {
 
     private AuthState state;
     private String username;
+    private DatabaseManager databaseManager;
 
     public AuthenticationHandler() {
         this.state = AuthState.AWAITING_USERNAME;
+        this.databaseManager = new DatabaseManager();
     }
 
-    public boolean handleInput(String input, PrintWriter writer) {
+    public boolean handleInput(String input, PrintWriter writer) throws IOException {
         switch (state) {
             case AWAITING_USERNAME:
-                writer.println("Please enter your username.");
                 if (input != null && !input.trim().isEmpty()) {
                     this.username = input;
                     this.state = AuthState.AWAITING_PASSWORD;
+                    writer.println("Please enter your password.");
                 } else {
                     writer.println("Invalid username. Please try again.");
                 }
                 return false;
             case AWAITING_PASSWORD:
-                writer.println("Please enter your password.");
                 if (input != null && !input.trim().isEmpty()) {
-                    writer.println("Authentication successful. Welcome to the waiting room.");
-                    return true;
+                    if (databaseManager.verifyPassword(username, input)) {
+                        writer.println("Authentication successful. Welcome to the waiting room.");
+                        return true;
+                    } else {
+                        writer.println("Invalid password. Please try again.");
+                        this.state = AuthState.AWAITING_USERNAME;
+                    }
                 } else {
                     writer.println("Invalid password. Please try again.");
                 }
