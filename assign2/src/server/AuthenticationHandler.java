@@ -26,24 +26,40 @@ public class AuthenticationHandler {
                     this.username = input;
                     if(databaseManager.verifyUsername(username)){
                         this.state = AuthState.AWAITING_PASSWORD;
-                        writer.println("Please enter your password.");
+                        writer.println("\n┌═════════════════════════════════════════════┐\n" +
+                                         "│   Please enter your password.               │\n" +
+                                         "└═════════════════════════════════════════════┘");
                     }
                     else {
-                        writer.println("Invalid username. Please try again.");
+                        writer.println("\n┌═════════════════════════════════════════════┐\n" +
+                                         "│   Invalid username. Please try again.       │\n" +
+                                         "└═════════════════════════════════════════════┘");
                     }
                 }
                 return false;
             case AWAITING_PASSWORD:
                 if (input != null && !input.trim().isEmpty()) {
                     if (databaseManager.verifyPassword(username, input)) {
-                        writer.println("Authentication successful. Welcome to the waiting room.");
+                        writer.println("\n┌═════════════════════════════════════════════┐\n" +
+                                         "│         Authentication successful.          │\n" +
+                                         "└═════════════════════════════════════════════┘\n\n" +
+                                         "┌═════════════════════════════════════════════┐\n" +
+                                         "│        Welcome to the Waiting Room.         │\n" +
+                                         "├─────────────────────────────────────────────┤\n" +
+                                         "│  Please wait while we find another          │\n" +
+                                         "│  player to join you.                        │\n" +
+                                         "└═════════════════════════════════════════════┘\n");
                         return true;
                     } else {
-                        writer.println("Invalid password. Please try again.");
+                        writer.println("\n┌═════════════════════════════════════════════┐\n" +
+                                         "│   Invalid password. Please try again.       │\n" +
+                                         "└═════════════════════════════════════════════┘");
                         this.state = AuthState.AWAITING_PASSWORD;
                     }
                 } else {
-                    writer.println("Invalid password. Please try again.");
+                    writer.println("\n┌═════════════════════════════════════════════┐\n" +
+                                     "│   Invalid password. Please try again.       │\n" +
+                                     "└═════════════════════════════════════════════┘");
                 }
                 return false;
             default:
