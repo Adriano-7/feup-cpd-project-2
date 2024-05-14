@@ -5,6 +5,7 @@ import java.net.*;
 
 public class Server {
     ServerSocket serverSocket;
+
     public Server(int portNumber) {
         try {
             serverSocket = new ServerSocket(portNumber);
@@ -16,9 +17,13 @@ public class Server {
 
     public static void main(String[] args) throws IOException {
         Server server = new Server(8080);
+
+        MatchmakingPool matchmakingPool = new MatchmakingPool();
+        Thread.ofVirtual().start(matchmakingPool);
+
         while(!server.serverSocket.isClosed()){
             Socket clientSocket = server.serverSocket.accept();
-            ClientSession clientSession = new ClientSession(clientSocket);
+            ClientSession clientSession = new ClientSession(clientSocket, matchmakingPool);
             Thread.ofVirtual().start(clientSession);
         }
     }
