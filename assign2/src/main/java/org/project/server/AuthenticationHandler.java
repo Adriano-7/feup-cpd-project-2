@@ -134,7 +134,6 @@ public class AuthenticationHandler {
                         this.state = AuthState.AWAITING_LOGIN_REGISTER;
                         return false;
                     }
-                    if(true){ // for password validity checking (if implemented)
                         writer.write("\n-----------------------------------------------\n" +
                                         "|         Authentication successful.          |\n" +
                                         "-----------------------------------------------\n\n" +
@@ -147,13 +146,6 @@ public class AuthenticationHandler {
                         writer.flush();
                         databaseManager.register(this.username, input);
                         return true;
-                    } else {
-                        writer.write("\n-----------------------------------------------\n" +
-                                         "|   Invalid password. Please try again.       |\n" +
-                                         "-----------------------------------------------\n");
-                        writer.flush();
-                        this.state = AuthState.AWAITING_REGISTER_PASSWORD;
-                    }
                 } else {
                     writer.write("\n-----------------------------------------------\n" +
                                      "|   Invalid password. Please try again.       |\n" +

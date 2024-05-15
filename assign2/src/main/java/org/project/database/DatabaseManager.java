@@ -4,7 +4,8 @@ import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.locks.*;
-import java.util.Base64;
+import org.mindrot.jbcrypt.BCrypt;
+
 
 
 public class DatabaseManager {
@@ -14,10 +15,11 @@ public class DatabaseManager {
 
     private static final String DATABASE_FILE = "src/main/java/org/project/database/database.csv";
     public void register(String username, String password) throws IOException {
-        String encryptedPassword = Base64.getEncoder().encodeToString(password.getBytes());
+        String salt = BCrypt.gensalt();
+        String encryptedPassword = BCrypt.hashpw(password, salt);
         writeLock.lock();
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(DATABASE_FILE), StandardOpenOption.APPEND)) {
-            writer.write(username + "," + 0 + "," + encryptedPassword + "\n");
+            writer.write(username + "," + 0 + "," + encryptedPassword + "," + salt);
         } finally {
             writeLock.unlock();
         }
@@ -75,14 +77,13 @@ public class DatabaseManager {
     }
 
     public boolean verifyPassword(String username, String password) {
-        String encryptedPassword = Base64.getEncoder().encodeToString(password.getBytes());
         readLock.lock();
         try (BufferedReader reader = Files.newBufferedReader(Paths.get(DATABASE_FILE))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(",");
-                if (parts[0].equals(username) && parts[2].equals(encryptedPassword)) {
-                    return true;
+                if (parts[0].equals(username)) {
+                    return BCrypt.checkpw(password, parts[2]);
                 }
             }
             return false;
@@ -97,6 +98,7 @@ public class DatabaseManager {
         }
         return false;
     }
+
     public int getUserPoints(String username) throws IOException {
         readLock.lock();
         try (BufferedReader reader = Files.newBufferedReader(Paths.get(DATABASE_FILE))) {
