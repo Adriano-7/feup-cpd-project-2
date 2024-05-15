@@ -23,6 +23,7 @@ public class DatabaseManager {
     public boolean verifyUsername(String username) {
         readLock.lock();
         try (BufferedReader reader = Files.newBufferedReader(Paths.get(DATABASE_FILE))) {
+
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(",");
@@ -36,6 +37,9 @@ public class DatabaseManager {
             e.printStackTrace();
         } catch (IOException e) {
             System.out.println("There was an issue reading the database file: " + e.getMessage());
+            e.printStackTrace();
+        } catch (Exception e) {
+            System.out.println("An unexpected error occurred: " + e.getMessage());
             e.printStackTrace();
         }
         finally {

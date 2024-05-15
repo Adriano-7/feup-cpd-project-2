@@ -60,9 +60,13 @@ public class ClientSession implements Runnable {
         switch (state) {
             case INITIAL:
                 //TODO: Handle token
-                writer.println("┌═════════════════════════════════════════════┐\n" +
-                               "│   Please enter your username.               │\n" +
-                               "└═════════════════════════════════════════════┘");
+                writer.println(
+                        "\n┌═════════════════════════════════════════════┐\n" +
+                          "│              Select an option:              │\n" +
+                          "├─────────────────────────────────────────────┤\n" +
+                          "│   Register                             [0]  │\n" +
+                          "│   Login                                [1]  │\n" +
+                          "└═════════════════════════════════════════════┘\n");
                 this.state = ClientStateEnum.AUTHENTICATING;
                 break;
             case AUTHENTICATING:

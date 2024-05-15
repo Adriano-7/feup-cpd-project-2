@@ -30,10 +30,6 @@ public class AuthenticationHandler {
                                         "│   Please enter your username. (q to quit)   │\n" +
                                         "└═════════════════════════════════════════════┘";
 
-                    writer.println("\n┌═════════════════════════════════════════════┐\n" +
-                                     "│   Register: 0                    Login: 1   │\n" +
-                                     "└═════════════════════════════════════════════┘"); 
-
                     if(input.equals("0")){
                         this.state = AuthState.AWAITING_REGISTER_USERNAME;
                         writer.println(to_print);
