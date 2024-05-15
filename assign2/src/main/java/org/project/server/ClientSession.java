@@ -1,4 +1,4 @@
-package server;
+package org.project.server;
 
 import java.io.*;
 import java.net.Socket;
@@ -31,9 +31,9 @@ public class ClientSession implements Runnable {
         try {
             this.reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             this.writer = new PrintWriter(clientSocket.getOutputStream(), true);
-            writer.println("\n┌═════════════════════════════════════════════┐\n" +
-                             "│            Welcome to the Server!           │\n" +
-                             "└═════════════════════════════════════════════┘\n");
+            writer.println("\n-----------------------------------------------\n" +
+                             "|            Welcome to the Server!           |\n" +
+                             "-----------------------------------------------\n");
 
             handleInput("");
         }  catch (IOException e) {
@@ -61,12 +61,12 @@ public class ClientSession implements Runnable {
             case INITIAL:
                 //TODO: Handle token
                 writer.println(
-                        "\n┌═════════════════════════════════════════════┐\n" +
-                          "│              Select an option:              │\n" +
-                          "├─────────────────────────────────────────────┤\n" +
-                          "│   Register                             [0]  │\n" +
-                          "│   Login                                [1]  │\n" +
-                          "└═════════════════════════════════════════════┘\n");
+                        "\n|---------------------------------------------|\n" +
+                          "|              Select an option:              |\n" +
+                          "|---------------------------------------------|\n" +
+                          "|   Register                             [0]  |\n" +
+                          "|   Login                                [1]  |\n" +
+                          "|---------------------------------------------|\n");
                 this.state = ClientStateEnum.AUTHENTICATING;
                 break;
             case AUTHENTICATING:
@@ -91,11 +91,11 @@ public class ClientSession implements Runnable {
                 }
                 break;
             case GAME_OVER:
-                writer.println("┌═════════════════════════════════════════════┐\n" +
-                               "│                  GAME OVER                  │\n" +
-                               "├═════════════════════════════════════════════┤\n" +
-                               "│  Thanks for playing!                        │\n" +
-                               "└═════════════════════════════════════════════┘");
+                writer.println("|---------------------------------------------|\n" +
+                               "|                  GAME OVER                  |\n" +
+                               "|---------------------------------------------|\n" +
+                               "|  Thanks for playing!                        |\n" +
+                               "|---------------------------------------------|");
                 state = ClientStateEnum.WAITING_ROOM;
                 // Handle left game logic
                 break;

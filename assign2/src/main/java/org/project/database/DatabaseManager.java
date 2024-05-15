@@ -1,4 +1,4 @@
-package database;
+package org.project.database;
 
 import java.io.*;
 import java.nio.file.*;
@@ -10,7 +10,7 @@ public class DatabaseManager {
     private static final Lock readLock = lock.readLock();
     private static final Lock writeLock = lock.writeLock();
 
-    private static final String DATABASE_FILE = "C:\\Users\\adria\\Desktop\\Projetos\\CPD-2\\assign2\\src\\database\\database.csv";
+    private static final String DATABASE_FILE = "src/main/java/org/project/database/database.csv";
     public void register(String username, String password) throws IOException {
         writeLock.lock();
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(DATABASE_FILE), StandardOpenOption.APPEND)) {
@@ -18,6 +18,51 @@ public class DatabaseManager {
         } finally {
             writeLock.unlock();
         }
+    }
+
+    public void addUsername(String username) {
+        writeLock.lock();
+        try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(DATABASE_FILE), StandardOpenOption.APPEND)) {
+            writer.write(username + "\n");
+        }
+        catch (FileNotFoundException e) {
+            System.out.println("The database file was not found: " + e.getMessage());
+            e.printStackTrace();
+        }
+        catch (IOException e) {
+            System.out.println("There was an issue writing to the database file: " + e.getMessage());
+            e.printStackTrace();
+        }
+        catch (Exception e) {
+            System.out.println("An unexpected error occurred: " + e.getMessage());
+            e.printStackTrace();
+        }
+        finally {
+            writeLock.unlock();
+        }
+    }
+
+    public boolean usernameExists(String username) {
+        readLock.lock();
+        try (BufferedReader reader = Files.newBufferedReader(Paths.get(DATABASE_FILE))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts[0].equals(username)) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (FileNotFoundException e) {
+            System.out.println("The database file was not found: " + e.getMessage());
+            e.printStackTrace();
+        } catch (IOException e) {
+            System.out.println("There was an issue reading the database file: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            readLock.unlock();
+        }
+        return false;
     }
 
     public boolean verifyUsername(String username) {

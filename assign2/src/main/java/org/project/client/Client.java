@@ -1,4 +1,4 @@
-package client;
+package org.project.client;
 
 import java.net.*;
 import java.io.*;
@@ -17,7 +17,7 @@ public class Client {
 
         try {
             KeyStore ks = KeyStore.getInstance("JKS");
-            ks.load(new FileInputStream("certificate/keystore.jks"), passphrase);
+            ks.load(new FileInputStream("src/main/java/org/project/certificate/keystore.jks"), passphrase);
 
             KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
             kmf.init(ks, passphrase);

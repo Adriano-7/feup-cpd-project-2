@@ -1,4 +1,4 @@
-package server;
+package org.project.server;
 
 import java.io.*;
 import java.net.*;
@@ -7,14 +7,14 @@ import java.security.*;
 import java.security.cert.CertificateException;
 
 public class Server {
-    SSLServerSocket serverSocket;
+    public SSLServerSocket serverSocket;
 
     public Server(int portNumber) {
         char[] passphrase = "changeit".toCharArray();//keystore password
 
         try {
             KeyStore ks = KeyStore.getInstance("JKS");
-            ks.load(new FileInputStream("certificate/keystore.jks"), passphrase);
+            ks.load(new FileInputStream("src/main/java/org/project/certificate/keystore.jks"), passphrase);
 
             KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
             kmf.init(ks, passphrase);
@@ -26,8 +26,12 @@ public class Server {
             sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
 
             SSLServerSocketFactory ssf = sslContext.getServerSocketFactory();
-            serverSocket = (SSLServerSocket) ssf.createServerSocket(portNumber);
-        } catch (IOException | KeyStoreException | CertificateException | NoSuchAlgorithmException | KeyManagementException | UnrecoverableKeyException e) {
+            this.serverSocket = (SSLServerSocket) ssf.createServerSocket(portNumber);
+        }
+        catch (FileNotFoundException e) {
+            System.out.println("File not found");
+        }
+        catch (IOException | KeyStoreException | CertificateException | NoSuchAlgorithmException | KeyManagementException | UnrecoverableKeyException e) {
             System.out.println("Exception caught when trying to listen on port " + portNumber + " or listening for a connection");
             System.out.println(e.getMessage());
         }

@@ -1,4 +1,4 @@
-package server;
+package org.project.server;
 
 import java.util.ArrayList;
 import java.util.HashMap;

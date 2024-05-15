@@ -1,4 +1,4 @@
-package server;
+package org.project.server;
 
 public enum ClientStateEnum {
     INITIAL,
