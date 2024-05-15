@@ -1,20 +1,18 @@
 package org.project.client;
 
-import java.net.*;
 import java.io.*;
 import javax.net.ssl.*;
 import java.security.*;
 import java.security.cert.CertificateException;
+import java.util.Scanner;
 
 public class Client {
-    public String username;
+    private SSLSocket echoSocket;
+    BufferedWriter writer;
+    BufferedReader reader;
 
-    public static void main(String[] args) throws IOException, InterruptedException{
-        String hostName = "localhost";
-        int portNumber = 8080;
+    public Client(String hostName, int portNumber) throws IOException {
         char[] passphrase = "changeit".toCharArray();//keystore password
-        SSLSocket echoSocket = null;
-
         try {
             KeyStore ks = KeyStore.getInstance("JKS");
             ks.load(new FileInputStream("src/main/java/org/project/certificate/keystore.jks"), passphrase);
@@ -31,37 +29,48 @@ public class Client {
             SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
             echoSocket = (SSLSocket) sslSocketFactory.createSocket(hostName, portNumber);
 
-            PrintWriter out = new PrintWriter(echoSocket.getOutputStream(), true);
-            BufferedReader in = new BufferedReader(new InputStreamReader(echoSocket.getInputStream()));
-
-            // Create a virtual thread for output
-            Thread outputThread = Thread.ofVirtual().start(() -> outputLoop(in));
-            
-            // Use the main thread for input
-            inputLoop(new BufferedReader(new InputStreamReader(System.in)), out); 
-            
-        } catch(NoSuchAlgorithmException | KeyManagementException | KeyStoreException | CertificateException | UnrecoverableKeyException e){ 
+            this.writer = new BufferedWriter(new OutputStreamWriter(echoSocket.getOutputStream()));
+            this.reader = new BufferedReader(new InputStreamReader(echoSocket.getInputStream()));
+        } catch(NoSuchAlgorithmException | KeyManagementException | KeyStoreException | CertificateException | UnrecoverableKeyException e){
             e.printStackTrace();
-        } finally {
-            echoSocket.close();
         }
     }
 
-    private static void inputLoop(BufferedReader stdIn, PrintWriter out) throws IOException {
+    public void start() throws IOException {
+        // Create a virtual thread for output
+        Thread outputThread = Thread.ofVirtual().start(() -> outputLoop());
+
+        // Use the main thread for input
+        inputLoop();
+    }
+
+    private void inputLoop() throws IOException {
         String userInput;
-        while ((userInput = stdIn.readLine()) != null) {
-            out.println(userInput);
-            if (userInput.equals("bye")) break;
+        while (this.echoSocket.isConnected()) {
+            try{
+                userInput = reader.readLine();
+                if (userInput != null) {
+                    System.out.println(userInput);
+                }
+            } catch (IOException e) {
+                System.err.println("Error reading server output");
+            }
         }
     }
 
-    private static void outputLoop(BufferedReader in) {
+    private void outputLoop() {
         try {
-            String serverOutput;
-            while (true) {
-                serverOutput = in.readLine();
-                System.out.println(serverOutput);
+            Scanner scanner = new Scanner(System.in);
+            while (this.echoSocket.isConnected()) {
+                String message = scanner.nextLine();
+                if (message.equals("bye")) {
+                    this.echoSocket.close();
+                    break;
+                }
+                writer.write(message + "\n");
+                writer.flush();
             }
+
         } catch (IOException e) {
             System.err.println("Error reading server output");
         }

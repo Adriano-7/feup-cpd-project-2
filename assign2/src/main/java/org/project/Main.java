@@ -14,7 +14,7 @@ public class Main {
                              "|---------------------------------------------|\n" +
                              "|   Run Server                           [1]  |\n" +
                              "|   Run Client                           [2]  |\n" +
-                             "-----------------------------------------------\n");
+                             "-----------------------------------------------\n\n");
         System.out.print("Enter your choice (1/2): ");
 
 
@@ -24,11 +24,13 @@ public class Main {
         if (choice == 1) {
             System.out.println("\n-----------------------------------------------\n" +
                                  "|             Server Initialized!             |\n" +
-                                 "-----------------------------------------------\n");
-            Server.main(args);
+                                 "-----------------------------------------------\n\n");
+            Server server = new Server(8080);
+            server.start();
         }
         else if (choice == 2) {
-            Client.main(args);
+            Client client = new Client("localhost", 8080);
+            client.start();
         } else {
             System.out.println("Invalid choice. Exiting.");
         }

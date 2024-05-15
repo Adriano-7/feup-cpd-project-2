@@ -14,7 +14,7 @@ public class ClientSession implements Runnable {
     public UUID gameId;
     private final SSLSocket clientSocket;
     private BufferedReader reader;
-    public PrintWriter writer;
+    public BufferedWriter writer;
     private ClientStateEnum state;
     private AuthenticationHandler authHandler;
     private final MatchmakingPool matchmakingPool;
@@ -30,10 +30,11 @@ public class ClientSession implements Runnable {
 
         try {
             this.reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            this.writer = new PrintWriter(clientSocket.getOutputStream(), true);
-            writer.println("\n-----------------------------------------------\n" +
+            this.writer = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+            writer.write("\n-----------------------------------------------\n" +
                              "|            Welcome to the Server!           |\n" +
-                             "-----------------------------------------------\n");
+                             "-----------------------------------------------\n\n");
+            writer.flush();
 
             handleInput("");
         }  catch (IOException e) {
@@ -60,13 +61,15 @@ public class ClientSession implements Runnable {
         switch (state) {
             case INITIAL:
                 //TODO: Handle token
-                writer.println(
+                writer.write(
                         "\n|---------------------------------------------|\n" +
                           "|              Select an option:              |\n" +
                           "|---------------------------------------------|\n" +
                           "|   Register                             [0]  |\n" +
                           "|   Login                                [1]  |\n" +
-                          "|---------------------------------------------|\n");
+                          "|---------------------------------------------|\n\n");
+                writer.flush();
+
                 this.state = ClientStateEnum.AUTHENTICATING;
                 break;
             case AUTHENTICATING:
@@ -91,11 +94,13 @@ public class ClientSession implements Runnable {
                 }
                 break;
             case GAME_OVER:
-                writer.println("|---------------------------------------------|\n" +
+                writer.write("|---------------------------------------------|\n" +
                                "|                  GAME OVER                  |\n" +
                                "|---------------------------------------------|\n" +
                                "|  Thanks for playing!                        |\n" +
-                               "|---------------------------------------------|");
+                               "|---------------------------------------------|\n");
+                writer.flush();
+
                 state = ClientStateEnum.WAITING_ROOM;
                 // Handle left game logic
                 break;

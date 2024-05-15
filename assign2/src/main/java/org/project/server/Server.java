@@ -8,7 +8,6 @@ import java.security.cert.CertificateException;
 
 public class Server {
     public SSLServerSocket serverSocket;
-
     public Server(int portNumber) {
         char[] passphrase = "changeit".toCharArray();//keystore password
 
@@ -36,15 +35,12 @@ public class Server {
             System.out.println(e.getMessage());
         }
     }
-
-    public static void main(String[] args) throws IOException {
-        Server server = new Server(8080);
-
+    public void start() throws IOException {
         MatchmakingPool matchmakingPool = new MatchmakingPool();
         Thread.ofVirtual().start(matchmakingPool);
 
-        while(!server.serverSocket.isClosed()){
-            SSLSocket clientSocket = (SSLSocket) server.serverSocket.accept();
+        while(!this.serverSocket.isClosed()){
+            SSLSocket clientSocket = (SSLSocket) this.serverSocket.accept();
             ClientSession clientSession = new ClientSession(clientSocket, matchmakingPool);
             Thread clientThread = new Thread (clientSession);
             Thread.ofVirtual().start(clientSession);

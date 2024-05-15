@@ -1,5 +1,6 @@
 package org.project.server;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,7 +31,12 @@ public class MatchmakingPool implements Runnable {
 
                     UUID gameId = UUID.randomUUID();
 
-                    Game game = new Game(gameId, client1, client2);
+                    Game game = null;
+                    try {
+                        game = new Game(gameId, client1, client2);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                     ClientSession.games.put(gameId, game);
 
                     client1.setGameId(gameId);
