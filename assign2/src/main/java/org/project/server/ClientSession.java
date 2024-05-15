@@ -62,12 +62,12 @@ public class ClientSession implements Runnable {
             case INITIAL:
                 //TODO: Handle token
                 writer.write(
-                        "\n|---------------------------------------------|\n" +
-                          "|              Select an option:              |\n" +
-                          "|---------------------------------------------|\n" +
-                          "|   Register                             [0]  |\n" +
-                          "|   Login                                [1]  |\n" +
-                          "|---------------------------------------------|\n\n");
+                            "\n-----------------------------------------------\n" +
+                                "|              Select an option:              |\n" +
+                                "|---------------------------------------------|\n" +
+                                "|   Register                             [0]  |\n" +
+                                "|   Login                                [1]  |\n" +
+                                "-----------------------------------------------\n");
                 writer.flush();
 
                 this.state = ClientStateEnum.AUTHENTICATING;
@@ -94,11 +94,12 @@ public class ClientSession implements Runnable {
                 }
                 break;
             case GAME_OVER:
-                writer.write("|---------------------------------------------|\n" +
-                               "|                  GAME OVER                  |\n" +
-                               "|---------------------------------------------|\n" +
-                               "|  Thanks for playing!                        |\n" +
-                               "|---------------------------------------------|\n");
+                writer.write(
+                        "-----------------------------------------------\n" +
+                        "|                  GAME OVER                  |\n" +
+                        "|---------------------------------------------|\n" +
+                        "|  Thanks for playing!                        |\n" +
+                        "-----------------------------------------------\n");
                 writer.flush();
 
                 state = ClientStateEnum.WAITING_ROOM;

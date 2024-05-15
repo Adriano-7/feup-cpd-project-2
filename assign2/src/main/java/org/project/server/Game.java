@@ -28,24 +28,27 @@ public class Game {
         this.startingClient = startingClient;
         this.nonStartingClient = nonStartingClient;
 
-        startingClient.writer.write("|---------------------------------------------|\n" +
-                                      "|                GAME STARTED                 |\n" +
-                                      "|---------------------------------------------|\n" +
-                                      "|  You'll be the player choosing the          |\n" +
-                                      "|  parity for this game.                      |\n" +
-                                      "|---------------------------------------------|\n" +
-                                      "|  Please choose if you either want to        |\n" +
-                                      "|  play as Even ['even'] or as Odd ['odd'].   |\n" +
-                                      "|---------------------------------------------|\n");
+        startingClient.writer.write(
+                "-----------------------------------------------\n" +
+                "|                GAME STARTED                 |\n" +
+                "|---------------------------------------------|\n" +
+                "|  You'll be the player choosing the          |\n" +
+                "|  parity for this game.                      |\n" +
+                "|---------------------------------------------|\n" +
+                "|  Please choose if you either want to        |\n" +
+                "|  play as Even ['even'] or as Odd ['odd'].   |\n" +
+                "-----------------------------------------------\n");
         startingClient.writer.flush();
 
 
-        nonStartingClient.writer.write("|---------------------------------------------|\n" +
-                                         "|                GAME STARTED                 |\n" +
-                                         "|---------------------------------------------|\n" +
-                                         "|  Please wait while the other player         |\n" +
-                                         "|  chooses its parity for this game.          |\n" +
-                                         "|---------------------------------------------|\n");
+        nonStartingClient.writer.write(
+                    "-----------------------------------------------\n" +
+                        "|                GAME STARTED                 |\n" +
+                        "|---------------------------------------------|\n" +
+                        "|  Please wait while the other player         |\n" +
+                        "|  chooses its parity for this game.          |\n" +
+                        "-----------------------------------------------\n"
+        );
         nonStartingClient.writer.flush();
     }
 
@@ -53,21 +56,24 @@ public class Game {
         switch (state) {
             case PARITY_SELECTION:
                 if(client == startingClient){
-                if (input.equals("odd") || input.equals("even")) {
+                    if (input.equals("odd") || input.equals("even")) {
                         parity = input;
-                        nonStartingClient.writer.write("\n|---------------------------------------------|\n" +
-                                                           "   Opponent has chosen " + input + ".          \n" +
-                                                           "|---------------------------------------------|\n" +
-                                                           "|  Please type which number you want to use.  |\n" +
-                                                           "|---------------------------------------------|\n");
+                        nonStartingClient.writer.write(
+                                "\n-----------------------------------------------\n" +
+                                "   Opponent has chosen " + input + ".          \n" +
+                                "|---------------------------------------------|\n" +
+                                "|  Please type which number you want to use.  |\n" +
+                                "-----------------------------------------------\n");
                         nonStartingClient.writer.flush();
-                    state = GameState.GUESS_SELECTION;
-                } else {
-                    client.writer.write("\n|---------------------------------------------|\n" +
-                                            "| Invalid input. Please type 'even' or 'odd'. |\n" +
-                                            "|---------------------------------------------|\n");
-                    client.writer.flush();
-                }}
+
+                        state = GameState.GUESS_SELECTION;
+                    } else {
+                        client.writer.write(
+                                "\n-----------------------------------------------\n" +
+                                "| Invalid input. Please type 'even' or 'odd'. |\n" +
+                                "-----------------------------------------------\n");
+                        client.writer.flush();
+                    }}
                 break;
             case GUESS_SELECTION:
                 //Each client guesses a number
@@ -75,17 +81,19 @@ public class Game {
                     int guess = Integer.parseInt(input);
                     if (client == startingClient) {
                         number1 = guess;
-                        nonStartingClient.writer.write("\n|---------------------------------------------|\n" +
-                                                           "|   The other player made his guess.          |\n" +
-                                                           "|   Please make yours.                        |\n" +
-                                                           "|---------------------------------------------|\n");
+                        nonStartingClient.writer.write(
+                                "\n-----------------------------------------------\n" +
+                                "|   The other player made his guess.          |\n" +
+                                "|   Please make yours.                        |\n" +
+                                "-----------------------------------------------\n");
                         nonStartingClient.writer.flush();
                     } else {
                         number2 = guess;
-                        startingClient.writer.write("\n|---------------------------------------------|\n" +
-                                                        "|   The other player made his guess.          |\n" +
-                                                        "|   Please make yours.                        |\n" +
-                                                        "|---------------------------------------------|\n");
+                        startingClient.writer.write(
+                                "\n-----------------------------------------------\n" +
+                                "|   The other player made his guess.          |\n" +
+                                "|   Please make yours.                        |\n" +
+                                "-----------------------------------------------\n");
                         startingClient.writer.flush();
                     }
                     if (number1 != -1 && number2 != -1) {
@@ -101,19 +109,21 @@ public class Game {
                             losingClient = startingClient;
                         }
 
-                        winningClient.writer.write("\n|---------------------------------------------|\n" +
-                                                       "|        Congratulations, you've Won!         |\n" +
-                                                       "|---------------------------------------------|\n" +
-                                                       "   The final result is " + sum + " which is " + winner + ".\n" +
-                                                       "|---------------------------------------------|\n");
+                        winningClient.writer.write(
+                                "\n-----------------------------------------------\n" +
+                                "|        Congratulations, you've Won!         |\n" +
+                                "|---------------------------------------------|\n" +
+                                "   The final result is " + sum + " which is " + winner + ".\n" +
+                                "-----------------------------------------------\n");
                         winningClient.writer.flush();
 
 
-                        losingClient.writer.write("\n|---------------------------------------------|\n" +
-                                                      "|          Bad Luck... you've Lost!           |\n" +
-                                                      "|---------------------------------------------|\n" +
-                                                       "   The final result is " + sum + " which is " + winner + ".\n" +
-                                                      "|---------------------------------------------|\n");
+                        losingClient.writer.write(
+                                "\n-----------------------------------------------\n" +
+                                "|          Bad Luck... you've Lost!           |\n" +
+                                "|---------------------------------------------|\n" +
+                                "   The final result is " + sum + " which is " + winner + ".\n" +
+                                "-----------------------------------------------\n");
                         losingClient.writer.flush();
 
                         startingClient.changeState(ClientStateEnum.GAME_OVER);
@@ -125,12 +135,14 @@ public class Game {
 
                     }
                 } catch (NumberFormatException e) {
-                    client.writer.write("\n|---------------------------------------------|\n" +
-                                            "|  Invalid input. Please enter a number.      |\n" +
-                                            "|---------------------------------------------|\n");
+                    client.writer.write(
+                            "\n-----------------------------------------------\n" +
+                            "|  Invalid input. Please enter a number.      |\n" +
+                            "-----------------------------------------------\n");
                     client.writer.flush();
                 }
                 break;
         }
     }
 }
+
