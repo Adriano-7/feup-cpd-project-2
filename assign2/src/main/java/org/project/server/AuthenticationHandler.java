@@ -79,7 +79,6 @@ public class AuthenticationHandler {
                                          "-----------------------------------------------");
                     }
                     else {
-                        databaseManager.addUsername(username);
                         this.state = AuthState.AWAITING_REGISTER_PASSWORD;
                         writer.println("\n-----------------------------------------------\n" +
                                          "|   Please enter your password.               |\n" +

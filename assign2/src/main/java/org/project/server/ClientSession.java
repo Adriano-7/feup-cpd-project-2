@@ -61,12 +61,12 @@ public class ClientSession implements Runnable {
             case INITIAL:
                 //TODO: Handle token
                 writer.println(
-                        "\n|---------------------------------------------|\n" +
+                        "\n-----------------------------------------------\n" +
                           "|              Select an option:              |\n" +
                           "|---------------------------------------------|\n" +
                           "|   Register                             [0]  |\n" +
                           "|   Login                                [1]  |\n" +
-                          "|---------------------------------------------|\n");
+                          "-----------------------------------------------\n");
                 this.state = ClientStateEnum.AUTHENTICATING;
                 break;
             case AUTHENTICATING:
@@ -91,11 +91,11 @@ public class ClientSession implements Runnable {
                 }
                 break;
             case GAME_OVER:
-                writer.println("|---------------------------------------------|\n" +
+                writer.println("-----------------------------------------------\n" +
                                "|                  GAME OVER                  |\n" +
                                "|---------------------------------------------|\n" +
                                "|  Thanks for playing!                        |\n" +
-                               "|---------------------------------------------|");
+                               "-----------------------------------------------");
                 state = ClientStateEnum.WAITING_ROOM;
                 // Handle left game logic
                 break;
