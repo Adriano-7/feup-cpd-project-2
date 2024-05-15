@@ -6,12 +6,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import javax.net.ssl.*;
 
 public class ClientSession implements Runnable {
     private static ArrayList<ClientSession> clientSessions = new ArrayList<>();
     public static Map<UUID,Game> games = new HashMap<>();
     public UUID gameId;
-    private final Socket clientSocket;
+    private final SSLSocket clientSocket;
     private BufferedReader reader;
     public PrintWriter writer;
     private ClientStateEnum state;
@@ -19,7 +20,7 @@ public class ClientSession implements Runnable {
     private final MatchmakingPool matchmakingPool;
     public boolean addedToMatchmakingPool = false;
 
-    public ClientSession(Socket clientSocket, MatchmakingPool matchmakingPool) {
+    public ClientSession(SSLSocket clientSocket, MatchmakingPool matchmakingPool) {
         this.clientSocket = clientSocket;
         clientSessions.add(this);
         this.state = ClientStateEnum.INITIAL;

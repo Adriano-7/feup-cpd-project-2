@@ -2,14 +2,32 @@ package server;
 
 import java.io.*;
 import java.net.*;
+import javax.net.ssl.*;
+import java.security.*;
+import java.security.cert.CertificateException;
 
 public class Server {
-    ServerSocket serverSocket;
+    SSLServerSocket serverSocket;
 
     public Server(int portNumber) {
+        char[] passphrase = "changeit".toCharArray();//keystore password
+
         try {
-            serverSocket = new ServerSocket(portNumber);
-        } catch (IOException e) {
+            KeyStore ks = KeyStore.getInstance("JKS");
+            ks.load(new FileInputStream("certificate/keystore.jks"), passphrase);
+
+            KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            kmf.init(ks, passphrase);
+
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            tmf.init(ks);
+
+            SSLContext sslContext = SSLContext.getInstance("SSL");
+            sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+
+            SSLServerSocketFactory ssf = sslContext.getServerSocketFactory();
+            serverSocket = (SSLServerSocket) ssf.createServerSocket(portNumber);
+        } catch (IOException | KeyStoreException | CertificateException | NoSuchAlgorithmException | KeyManagementException | UnrecoverableKeyException e) {
             System.out.println("Exception caught when trying to listen on port " + portNumber + " or listening for a connection");
             System.out.println(e.getMessage());
         }
@@ -22,8 +40,9 @@ public class Server {
         Thread.ofVirtual().start(matchmakingPool);
 
         while(!server.serverSocket.isClosed()){
-            Socket clientSocket = server.serverSocket.accept();
+            SSLSocket clientSocket = (SSLSocket) server.serverSocket.accept();
             ClientSession clientSession = new ClientSession(clientSocket, matchmakingPool);
+            Thread clientThread = new Thread (clientSession);
             Thread.ofVirtual().start(clientSession);
         }
     }
