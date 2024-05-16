@@ -9,7 +9,6 @@ import java.util.UUID;
 
 public class MatchmakingPool implements Runnable {
     private Map<String, List<ClientSession>> availableClients;
-
     public MatchmakingPool() {
         this.availableClients = new HashMap<>();
     }
@@ -24,10 +23,10 @@ public class MatchmakingPool implements Runnable {
                     ClientSession client2 = clients.removeFirst();
 
                     client1.changeState(ClientStateEnum.IN_GAME);
-                    client1.addedToMatchmakingPool = false;
+                    client1.updateMatchmakingStatus(false);
 
                     client2.changeState(ClientStateEnum.IN_GAME);
-                    client2.addedToMatchmakingPool = false;
+                    client2.updateMatchmakingStatus(false);
 
                     UUID gameId = UUID.randomUUID();
 
@@ -50,6 +49,4 @@ public class MatchmakingPool implements Runnable {
         availableClients.putIfAbsent(operatingMode, new ArrayList<>());
         availableClients.get(operatingMode).add(client);
     }
-
-
 }

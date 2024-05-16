@@ -8,8 +8,8 @@ import java.util.Scanner;
 
 public class Client {
     private SSLSocket echoSocket;
-    BufferedWriter writer;
-    BufferedReader reader;
+    private BufferedWriter writer;
+    private BufferedReader reader;
 
     public Client(String hostName, int portNumber) throws IOException {
         char[] passphrase = "changeit".toCharArray();//keystore password

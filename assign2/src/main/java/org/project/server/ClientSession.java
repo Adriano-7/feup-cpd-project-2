@@ -13,15 +13,15 @@ import javax.net.ssl.*;
 public class ClientSession implements Runnable {
     private static ArrayList<ClientSession> clientSessions = new ArrayList<>();
     public static Map<UUID,Game> games = new HashMap<>();
-    public Server server;
-    public UUID gameId;
+    private Server server;
+    private UUID gameId;
     private final SSLSocket clientSocket;
     private BufferedReader reader;
-    public BufferedWriter writer;
+    private BufferedWriter writer;
     private ClientStateEnum state;
     private AuthenticationHandler authHandler;
     private final MatchmakingPool matchmakingPool;
-    public boolean addedToMatchmakingPool = false;
+    private boolean addedToMatchmakingPool = false;
 
     public ClientSession(SSLSocket clientSocket, MatchmakingPool matchmakingPool, Server server) {
         this.clientSocket = clientSocket;
@@ -29,7 +29,7 @@ public class ClientSession implements Runnable {
         this.state = ClientStateEnum.INITIAL;
         this.matchmakingPool = matchmakingPool;
         this.server = server;
-        this.authHandler = new AuthenticationHandler(server.databaseManager);
+        this.authHandler = server.getAuthHandler();
         this.gameId = null;
 
         try {
@@ -81,7 +81,7 @@ public class ClientSession implements Runnable {
                 break;
             case AUTHENTICATING:
                 if (authHandler == null) {
-                    authHandler = new AuthenticationHandler(this.server.databaseManager);
+                    authHandler = server.getAuthHandler();
                 }
                 if (authHandler.handleInput(input, writer)) {
                     this.state = ClientStateEnum.WAITING_ROOM;
@@ -122,5 +122,17 @@ public class ClientSession implements Runnable {
     }
     public void setGameId(UUID gameId) {
         this.gameId = gameId;
+    }
+    public void writer(String message) {
+        try {
+            writer.write(message);
+            writer.flush();
+        } catch (IOException e) {
+            System.out.println("Error sending message to client: " + e.getMessage());
+        }
+    }
+
+    public void updateMatchmakingStatus(boolean isInMatchmakingPool) {
+        this.addedToMatchmakingPool = isInMatchmakingPool;
     }
 }

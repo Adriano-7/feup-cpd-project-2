@@ -9,8 +9,8 @@ import java.security.*;
 import java.security.cert.CertificateException;
 
 public class Server {
-    public SSLServerSocket serverSocket;
-    public DatabaseManager databaseManager;
+    private SSLServerSocket serverSocket;
+    private DatabaseManager databaseManager;
     public Server(int portNumber) {
         char[] passphrase = "changeit".toCharArray();//keystore password
 
@@ -58,5 +58,9 @@ public class Server {
             System.out.println("Exception caught when trying to close the server socket");
             System.out.println(e.getMessage());
         }
+    }
+
+    public AuthenticationHandler getAuthHandler() {
+        return new AuthenticationHandler(databaseManager);
     }
 }
