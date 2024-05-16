@@ -23,7 +23,7 @@ public class ClientSession implements Runnable {
     private ClientStateEnum state;
     private AuthenticationHandler authHandler;
     private final MatchmakingPool matchmakingPool;
-    private User user = null;
+    private User user;
 
     public ClientSession(SSLSocket clientSocket, MatchmakingPool matchmakingPool, Server server) {
         this.clientSocket = clientSocket;
@@ -33,6 +33,7 @@ public class ClientSession implements Runnable {
         this.server = server;
         this.authHandler = server.getAuthHandler();
         this.gameId = null;
+        this.user = new User();
 
         try {
             this.reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
@@ -128,12 +129,7 @@ public class ClientSession implements Runnable {
             System.out.println("Error sending message to client: " + e.getMessage());
         }
     }
-
     public User getUser() {
         return user;
     }
-    public void setUser(User user) {
-        this.user = user;
-    }
-
 }

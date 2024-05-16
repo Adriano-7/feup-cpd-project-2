@@ -15,9 +15,9 @@ public class DatabaseManager {
     private static final Lock writeLock = lock.writeLock();
 
     private static final String DATABASE_FILE = "src/main/java/org/project/database/database.csv";
-    public User register(String username, String password) throws IOException {
+    public boolean register(String username, String password, User user) throws IOException {
         if (verifyUsername(username)) {
-            return null;
+            return false;
         }
 
         String salt = BCrypt.gensalt();
@@ -31,7 +31,8 @@ public class DatabaseManager {
         } finally {
             writeLock.unlock();
         }
-        return new User(username, 0, token);
+        user.populate(username, 0, token, true, localDateTime);
+        return true;
     }
 
     public boolean verifyUsername(String username) {
@@ -61,50 +62,52 @@ public class DatabaseManager {
         return false;
     }
 
-public User verifyPassword(String username, String password) {
-    readLock.lock();
-    List<String> fileContent = new ArrayList<>();
-    User user = null;
-    try (BufferedReader reader = Files.newBufferedReader(Paths.get(DATABASE_FILE))) {
-        String line;
-        while ((line = reader.readLine()) != null) {
-            String[] parts = line.split(",");
-            if (parts[0].equals(username)) {
-                if(BCrypt.checkpw(password, parts[2])){
-                    parts[4] = UUID.randomUUID().toString();
-                    parts[5] = LocalDateTime.now().toString();
-                    user = new User(username, Integer.parseInt(parts[1]), parts[4]);
-                    line = String.join(",", parts);
+    public boolean verifyPassword(String username, String password, User user) {
+        readLock.lock();
+        List<String> fileContent = new ArrayList<>();
+        Boolean verified = false;
+        try (BufferedReader reader = Files.newBufferedReader(Paths.get(DATABASE_FILE))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts[0].equals(username)) {
+                    if(BCrypt.checkpw(password, parts[2])){
+                        parts[4] = UUID.randomUUID().toString();
+                        parts[5] = LocalDateTime.now().toString();
+                        user.populate(parts[0], Integer.parseInt(parts[1]), parts[4], true, LocalDateTime.now());
+                        line = String.join(",", parts);
+                        verified = true;
+                    }
                 }
+                fileContent.add(line);
             }
-            fileContent.add(line);
-        }
-    } catch (FileNotFoundException e) {
-        System.out.println("The database file was not found: " + e.getMessage());
-        e.printStackTrace();
-    } catch (IOException e) {
-        System.out.println("There was an issue reading the database file: " + e.getMessage());
-        e.printStackTrace();
-    } finally {
-        readLock.unlock();
-    }
-
-    if (user != null) {
-        writeLock.lock();
-        try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(DATABASE_FILE))) {
-            for (String fileLine : fileContent) {
-                writer.write(fileLine);
-                writer.newLine();
-            }
+        } catch (FileNotFoundException e) {
+            System.out.println("The database file was not found: " + e.getMessage());
+            e.printStackTrace();
         } catch (IOException e) {
-            System.out.println("There was an issue writing to the database file: " + e.getMessage());
+            System.out.println("There was an issue reading the database file: " + e.getMessage());
             e.printStackTrace();
         } finally {
-            writeLock.unlock();
+            readLock.unlock();
         }
+
+        if (verified) {
+            writeLock.lock();
+            try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(DATABASE_FILE))) {
+                for (String fileLine : fileContent) {
+                    writer.write(fileLine);
+                    writer.newLine();
+                }
+            } catch (IOException e) {
+                System.out.println("There was an issue writing to the database file: " + e.getMessage());
+                e.printStackTrace();
+            } finally {
+                writeLock.unlock();
+            }
+        }
+
+        return verified;
     }
-    return user;
-}
     public void updateLocalDateTime(String username) {
         writeLock.lock();
         try {

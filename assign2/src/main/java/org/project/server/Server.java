@@ -11,6 +11,7 @@ import java.security.cert.CertificateException;
 public class Server {
     private SSLServerSocket serverSocket;
     private DatabaseManager databaseManager;
+
     public Server(int portNumber) {
         char[] passphrase = "changeit".toCharArray();//keystore password
 
@@ -30,23 +31,23 @@ public class Server {
             SSLServerSocketFactory ssf = sslContext.getServerSocketFactory();
             this.serverSocket = (SSLServerSocket) ssf.createServerSocket(portNumber);
             this.databaseManager = new DatabaseManager();
-        }
-        catch (FileNotFoundException e) {
+        } catch (FileNotFoundException e) {
             System.out.println("File not found");
-        }
-        catch (IOException | KeyStoreException | CertificateException | NoSuchAlgorithmException | KeyManagementException | UnrecoverableKeyException e) {
+        } catch (IOException | KeyStoreException | CertificateException | NoSuchAlgorithmException |
+                 KeyManagementException | UnrecoverableKeyException e) {
             System.out.println("Exception caught when trying to listen on port " + portNumber + " or listening for a connection");
             System.out.println(e.getMessage());
         }
     }
+
     public void start() throws IOException {
         MatchmakingPool matchmakingPool = new MatchmakingPool();
         Thread.ofVirtual().start(matchmakingPool);
 
-        while(!this.serverSocket.isClosed()){
+        while (!this.serverSocket.isClosed()) {
             SSLSocket clientSocket = (SSLSocket) this.serverSocket.accept();
             ClientSession clientSession = new ClientSession(clientSocket, matchmakingPool, this);
-            Thread clientThread = new Thread (clientSession);
+            Thread clientThread = new Thread(clientSession);
             Thread.ofVirtual().start(clientSession);
         }
     }
@@ -63,6 +64,7 @@ public class Server {
     public AuthenticationHandler getAuthHandler() {
         return new AuthenticationHandler(databaseManager);
     }
+
     public DatabaseManager getDatabaseManager() {
         return databaseManager;
     }

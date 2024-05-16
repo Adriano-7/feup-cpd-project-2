@@ -98,8 +98,7 @@ public class AuthenticationHandler {
                         this.state = AuthState.AWAITING_LOGIN_REGISTER;
                         return false;
                     }
-                    User user = databaseManager.verifyPassword(username, input);
-                    if (user != null) {
+                    if (databaseManager.verifyPassword(this.username, input, clientSession.getUser())) {
                         clientSession.writer("\n-----------------------------------------------\n" +
                                          "|         Authentication successful.          |\n" +
                                          "-----------------------------------------------\n\n" +
@@ -109,7 +108,6 @@ public class AuthenticationHandler {
                                          "|  Please wait while we find another          |\n" +
                                          "|  player to join you.                        |\n" +
                                          "-----------------------------------------------\n\n");
-                        clientSession.setUser(user);
                         return true;
                     } else {
                         clientSession.writer("\n-----------------------------------------------\n" +
@@ -142,9 +140,7 @@ public class AuthenticationHandler {
                                         "|  player to join you.                        |\n" +
                                         "-----------------------------------------------\n\n");
 
-                        User user = databaseManager.register(this.username, input);
-                        if(user != null){
-                            clientSession.setUser(user);
+                        if(databaseManager.register(this.username, input, clientSession.getUser())){
                             return true;
                         }
                         else{
