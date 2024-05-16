@@ -1,5 +1,7 @@
 package org.project.server;
 
+import org.project.database.DatabaseManager;
+
 import java.io.*;
 import java.net.*;
 import javax.net.ssl.*;
@@ -8,6 +10,7 @@ import java.security.cert.CertificateException;
 
 public class Server {
     public SSLServerSocket serverSocket;
+    public DatabaseManager databaseManager;
     public Server(int portNumber) {
         char[] passphrase = "changeit".toCharArray();//keystore password
 
@@ -26,6 +29,7 @@ public class Server {
 
             SSLServerSocketFactory ssf = sslContext.getServerSocketFactory();
             this.serverSocket = (SSLServerSocket) ssf.createServerSocket(portNumber);
+            this.databaseManager = new DatabaseManager();
         }
         catch (FileNotFoundException e) {
             System.out.println("File not found");
@@ -41,7 +45,7 @@ public class Server {
 
         while(!this.serverSocket.isClosed()){
             SSLSocket clientSocket = (SSLSocket) this.serverSocket.accept();
-            ClientSession clientSession = new ClientSession(clientSocket, matchmakingPool);
+            ClientSession clientSession = new ClientSession(clientSocket, matchmakingPool, this);
             Thread clientThread = new Thread (clientSession);
             Thread.ofVirtual().start(clientSession);
         }

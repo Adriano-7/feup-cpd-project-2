@@ -1,5 +1,7 @@
 package org.project.server;
 
+import org.project.database.DatabaseManager;
+
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -11,6 +13,7 @@ import javax.net.ssl.*;
 public class ClientSession implements Runnable {
     private static ArrayList<ClientSession> clientSessions = new ArrayList<>();
     public static Map<UUID,Game> games = new HashMap<>();
+    public Server server;
     public UUID gameId;
     private final SSLSocket clientSocket;
     private BufferedReader reader;
@@ -20,12 +23,13 @@ public class ClientSession implements Runnable {
     private final MatchmakingPool matchmakingPool;
     public boolean addedToMatchmakingPool = false;
 
-    public ClientSession(SSLSocket clientSocket, MatchmakingPool matchmakingPool) {
+    public ClientSession(SSLSocket clientSocket, MatchmakingPool matchmakingPool, Server server) {
         this.clientSocket = clientSocket;
         clientSessions.add(this);
         this.state = ClientStateEnum.INITIAL;
         this.matchmakingPool = matchmakingPool;
-        this.authHandler = new AuthenticationHandler();
+        this.server = server;
+        this.authHandler = new AuthenticationHandler(server.databaseManager);
         this.gameId = null;
 
         try {
@@ -54,6 +58,9 @@ public class ClientSession implements Runnable {
                 break;
             }
         }
+        if(state != ClientStateEnum.INITIAL && state != ClientStateEnum.AUTHENTICATING){
+            //TODO: Update timestamp and set the client variable isOnline to false
+        }
     }
 
     private void handleInput(String input) throws IOException {
@@ -74,7 +81,7 @@ public class ClientSession implements Runnable {
                 break;
             case AUTHENTICATING:
                 if (authHandler == null) {
-                    authHandler = new AuthenticationHandler();
+                    authHandler = new AuthenticationHandler(this.server.databaseManager);
                 }
                 if (authHandler.handleInput(input, writer)) {
                     this.state = ClientStateEnum.WAITING_ROOM;

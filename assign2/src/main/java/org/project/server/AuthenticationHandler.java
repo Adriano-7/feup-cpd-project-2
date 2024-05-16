@@ -18,9 +18,9 @@ public class AuthenticationHandler {
     private String username;
     private DatabaseManager databaseManager;
 
-    public AuthenticationHandler() {
+    public AuthenticationHandler(DatabaseManager databaseManager) {
         this.state = AuthState.AWAITING_LOGIN_REGISTER;
-        this.databaseManager = new DatabaseManager();
+        this.databaseManager = databaseManager;
     }
 
     public boolean handleInput(String input, BufferedWriter writer) throws IOException {
@@ -144,8 +144,16 @@ public class AuthenticationHandler {
                                         "|  player to join you.                        |\n" +
                                         "-----------------------------------------------\n\n");
                         writer.flush();
-                        databaseManager.register(this.username, input);
-                        return true;
+                        if(databaseManager.register(this.username, input)){
+                            return true;
+                        }
+                        else{
+                            writer.write("\n-----------------------------------------------\n" +
+                                                "| Username already exists. Please try again.  |\n" +
+                                                "-----------------------------------------------\n");
+                            writer.flush();
+                            this.state = AuthState.AWAITING_REGISTER_USERNAME;
+                        }
                 } else {
                     writer.write("\n-----------------------------------------------\n" +
                                      "|   Invalid password. Please try again.       |\n" +
@@ -156,5 +164,9 @@ public class AuthenticationHandler {
             default:
                 return false;
         }
+    }
+
+    public String getUsername() {
+        return username;
     }
 }
