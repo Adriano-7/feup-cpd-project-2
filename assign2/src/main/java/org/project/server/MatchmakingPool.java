@@ -1,26 +1,42 @@
 package org.project.server;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 public class MatchmakingPool implements Runnable {
-    private Map<String, List<ClientSession>> availableClients;
+    private final List<ClientSession> simplePlayers;
+    private final Object lock = new Object();
+
     public MatchmakingPool() {
-        this.availableClients = new HashMap<>();
+        this.simplePlayers = new ArrayList<>();
+    }
+
+    private void checkAndRemoveOfflineClients() {
+        synchronized (lock) {
+            Iterator<ClientSession> iterator = simplePlayers.iterator();
+            while (iterator.hasNext()) {
+                ClientSession client = iterator.next();
+                if (!client.isOnline() && Duration.between(client.getLastOnline(), LocalDateTime.now()).toSeconds() >= 60) {
+                    iterator.remove();
+                    System.out.println("Client " + client.getUsername() + " removed from matchmaking pool due to inactivity.");
+                }
+            }
+        }
     }
 
     @Override
     public void run() {
         while (true) {
-            for (String operatingMode : availableClients.keySet()) {
-                List<ClientSession> clients = availableClients.get(operatingMode);
-                if (clients.size() >= 2) {
-                    ClientSession client1 = clients.removeFirst();
-                    ClientSession client2 = clients.removeFirst();
+            checkAndRemoveOfflineClients();
+            synchronized (lock) {
+                if (simplePlayers.size() >= 2) {
+                    ClientSession client1 = simplePlayers.removeFirst();
+                    ClientSession client2 = simplePlayers.removeFirst();
 
                     client1.changeState(ClientStateEnum.IN_GAME);
                     client2.changeState(ClientStateEnum.IN_GAME);
@@ -33,7 +49,9 @@ public class MatchmakingPool implements Runnable {
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
-                    ClientSession.games.put(gameId, game);
+                    synchronized (ClientSession.games) {
+                        ClientSession.games.put(gameId, game);
+                    }
 
                     client1.setGameId(gameId);
                     client2.setGameId(gameId);
@@ -42,8 +60,9 @@ public class MatchmakingPool implements Runnable {
         }
     }
 
-    public void addClient(String operatingMode, ClientSession client) {
-        availableClients.putIfAbsent(operatingMode, new ArrayList<>());
-        availableClients.get(operatingMode).add(client);
+    public void addClient(ClientSession client) {
+        synchronized (lock) {
+            simplePlayers.add(client);
+        }
     }
 }

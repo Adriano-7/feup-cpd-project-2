@@ -63,10 +63,6 @@ public class Client {
             Scanner scanner = new Scanner(System.in);
             while (this.echoSocket.isConnected()) {
                 String message = scanner.nextLine();
-                if (message.equals("bye")) {
-                    this.echoSocket.close();
-                    break;
-                }
                 writer.write(message + "\n");
                 writer.flush();
             }

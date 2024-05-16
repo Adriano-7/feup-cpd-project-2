@@ -2,12 +2,10 @@ package org.project.database;
 
 import java.io.*;
 import java.nio.file.*;
-import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.locks.*;
 import org.mindrot.jbcrypt.BCrypt;
-
-
+import java.time.LocalDateTime;
 
 public class DatabaseManager {
     private static final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
@@ -23,11 +21,11 @@ public class DatabaseManager {
         String salt = BCrypt.gensalt();
         String encryptedPassword = BCrypt.hashpw(password, salt);
         String token = UUID.randomUUID().toString();
-        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        LocalDateTime localDateTime = LocalDateTime.now();
 
         writeLock.lock();
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(DATABASE_FILE), StandardOpenOption.APPEND)) {
-            writer.write(username + "," + 0 + "," + encryptedPassword + "," + salt+ "," + token + "," + timestamp + "\n");
+            writer.write(username + "," + 0 + "," + encryptedPassword + "," + salt+ "," + token + "," + localDateTime + "\n");
         } finally {
             writeLock.unlock();
         }
@@ -96,7 +94,7 @@ public class DatabaseManager {
                 if (parts[0].equals(username)) {
                     if(BCrypt.checkpw(password, parts[2])){
                         parts[4] = UUID.randomUUID().toString();
-                        parts[5] = new Timestamp(System.currentTimeMillis()).toString();
+                        parts[5] = LocalDateTime.now().toString();
                         passwordVerified = true;
                     }
                     line = String.join(",", parts);
@@ -128,7 +126,7 @@ public class DatabaseManager {
         return false;
     }
 
-    public void updateTimestamp(String username) {
+    public void updateLocalDateTime(String username) {
         writeLock.lock();
         try {
             List<String> fileContent = new ArrayList<>();
@@ -137,7 +135,7 @@ public class DatabaseManager {
                 while ((line = reader.readLine()) != null) {
                     String[] parts = line.split(",");
                     if (parts[0].equals(username)) {
-                        parts[5] = new Timestamp(System.currentTimeMillis()).toString();
+                        parts[5] = LocalDateTime.now().toString();
                         line = String.join(",", parts);
                     }
                     fileContent.add(line);
@@ -150,7 +148,7 @@ public class DatabaseManager {
                 }
             }
         } catch (IOException e) {
-            System.out.println("There was an issue updating the timestamp: " + e.getMessage());
+            System.out.println("There was an issue updating the localDateTime: " + e.getMessage());
             e.printStackTrace();
         } finally {
             writeLock.unlock();
@@ -186,6 +184,36 @@ public class DatabaseManager {
             return -1;
         } finally {
             readLock.unlock();
+        }
+    }
+
+    public void updateClient(String username, int rank, LocalDateTime lastOnline) {
+        writeLock.lock();
+        try {
+            List<String> fileContent = new ArrayList<>();
+            try (BufferedReader reader = Files.newBufferedReader(Paths.get(DATABASE_FILE))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String[] parts = line.split(",");
+                    if (parts[0].equals(username)) {
+                        parts[1] = Integer.toString(rank);
+                        parts[5] = lastOnline.toString();
+                        line = String.join(",", parts);
+                    }
+                    fileContent.add(line);
+                }
+            }
+            try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(DATABASE_FILE))) {
+                for (String fileLine : fileContent) {
+                    writer.write(fileLine);
+                    writer.newLine();
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("There was an issue updating the client: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            writeLock.unlock();
         }
     }
 }

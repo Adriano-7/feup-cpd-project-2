@@ -4,6 +4,8 @@ import org.project.database.DatabaseManager;
 
 import java.io.*;
 import java.net.Socket;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,6 +25,8 @@ public class ClientSession implements Runnable {
     private final MatchmakingPool matchmakingPool;
     private String username = null;
     private Integer rank = null;
+    private Boolean isOnline = true;
+    private LocalDateTime lastOnline = null;
 
     public ClientSession(SSLSocket clientSocket, MatchmakingPool matchmakingPool, Server server) {
         this.clientSocket = clientSocket;
@@ -60,7 +64,9 @@ public class ClientSession implements Runnable {
             }
         }
         if(state != ClientStateEnum.INITIAL && state != ClientStateEnum.AUTHENTICATING){
-            //TODO: Update timestamp and set the client variable isOnline to false
+            isOnline = false;
+            lastOnline = LocalDateTime.now();
+            server.getDatabaseManager().updateClient(username, rank, lastOnline);
         }
     }
 
@@ -85,7 +91,7 @@ public class ClientSession implements Runnable {
                 }
                 if (authHandler.handleInput(input, this)) {
                     this.state = ClientStateEnum.WAITING_ROOM;
-                    matchmakingPool.addClient("Simple",this);
+                    matchmakingPool.addClient(this);
                     authHandler = null;
                 }
                 break;
@@ -133,4 +139,14 @@ public class ClientSession implements Runnable {
     public void setRank(Integer rank) {
         this.rank = rank;
     }
+    public boolean isOnline() {
+        return isOnline;
+    }
+    public LocalDateTime getLastOnline() {
+        return lastOnline;
+    }
+    public String getUsername() {
+        return username;
+    }
+
 }
