@@ -83,7 +83,7 @@ public class ClientSession implements Runnable {
                 if (authHandler == null) {
                     authHandler = server.getAuthHandler();
                 }
-                if (authHandler.handleInput(input, writer)) {
+                if (authHandler.handleInput(input, this)) {
                     this.state = ClientStateEnum.WAITING_ROOM;
                     authHandler = null;
                 }
