@@ -172,4 +172,20 @@ public class DatabaseManager {
             readLock.unlock();
         }
     }
+
+    public int getRank(String username) throws IOException {
+        readLock.lock();
+        try (BufferedReader reader = Files.newBufferedReader(Paths.get(DATABASE_FILE))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts[0].equals(username)) {
+                    return Integer.parseInt(parts[1]);
+                }
+            }
+            return -1;
+        } finally {
+            readLock.unlock();
+        }
+    }
 }

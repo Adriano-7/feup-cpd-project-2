@@ -108,7 +108,8 @@ public class AuthenticationHandler {
                                          "|  Please wait while we find another          |\n" +
                                          "|  player to join you.                        |\n" +
                                          "-----------------------------------------------\n\n");
-                        
+                        clientSession.setRank(databaseManager.getRank(username));
+                        clientSession.setUsername(username);
                         return true;
                     } else {
                         clientSession.writer("\n-----------------------------------------------\n" +
@@ -142,6 +143,8 @@ public class AuthenticationHandler {
                                         "-----------------------------------------------\n\n");
                         
                         if(databaseManager.register(this.username, input)){
+                            clientSession.setRank(databaseManager.getRank(username));
+                            clientSession.setUsername(username);
                             return true;
                         }
                         else{

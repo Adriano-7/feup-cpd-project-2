@@ -22,6 +22,8 @@ public class ClientSession implements Runnable {
     private AuthenticationHandler authHandler;
     private final MatchmakingPool matchmakingPool;
     private boolean addedToMatchmakingPool = false;
+    private String username = null;
+    private Integer rank = null;
 
     public ClientSession(SSLSocket clientSocket, MatchmakingPool matchmakingPool, Server server) {
         this.clientSocket = clientSocket;
@@ -64,7 +66,6 @@ public class ClientSession implements Runnable {
     }
 
     private void handleInput(String input) throws IOException {
-        //writer.println("State: " + state);
         switch (state) {
             case INITIAL:
                 //TODO: Handle token
@@ -134,5 +135,11 @@ public class ClientSession implements Runnable {
 
     public void updateMatchmakingStatus(boolean isInMatchmakingPool) {
         this.addedToMatchmakingPool = isInMatchmakingPool;
+    }
+    public void setUsername(String username) {
+        this.username = username;
+    }
+    public void setRank(Integer rank) {
+        this.rank = rank;
     }
 }
