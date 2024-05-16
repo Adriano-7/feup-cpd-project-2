@@ -23,10 +23,7 @@ public class MatchmakingPool implements Runnable {
                     ClientSession client2 = clients.removeFirst();
 
                     client1.changeState(ClientStateEnum.IN_GAME);
-                    client1.updateMatchmakingStatus(false);
-
                     client2.changeState(ClientStateEnum.IN_GAME);
-                    client2.updateMatchmakingStatus(false);
 
                     UUID gameId = UUID.randomUUID();
 

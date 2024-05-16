@@ -21,7 +21,6 @@ public class ClientSession implements Runnable {
     private ClientStateEnum state;
     private AuthenticationHandler authHandler;
     private final MatchmakingPool matchmakingPool;
-    private boolean addedToMatchmakingPool = false;
     private String username = null;
     private Integer rank = null;
 
@@ -86,15 +85,11 @@ public class ClientSession implements Runnable {
                 }
                 if (authHandler.handleInput(input, this)) {
                     this.state = ClientStateEnum.WAITING_ROOM;
+                    matchmakingPool.addClient("Simple",this);
                     authHandler = null;
                 }
                 break;
             case WAITING_ROOM:
-                // Handle waiting room logic
-                if(!addedToMatchmakingPool) {
-                    matchmakingPool.addClient("Simple",this);
-                    addedToMatchmakingPool = true;
-                }
                 break;
             case IN_GAME:
                 if(gameId != null) {
@@ -131,10 +126,6 @@ public class ClientSession implements Runnable {
         } catch (IOException e) {
             System.out.println("Error sending message to client: " + e.getMessage());
         }
-    }
-
-    public void updateMatchmakingStatus(boolean isInMatchmakingPool) {
-        this.addedToMatchmakingPool = isInMatchmakingPool;
     }
     public void setUsername(String username) {
         this.username = username;
