@@ -76,7 +76,7 @@ public class AuthenticationHandler {
                         this.state = AuthState.AWAITING_LOGIN_REGISTER;
                         return false;
                     }
-                    if(databaseManager.usernameExists(username)){
+                    if(databaseManager.verifyUsername(username)){
                         clientSession.writer("\n-----------------------------------------------\n" +
                                          "| Username already exists. Please try again.  |\n" +
                                          "-----------------------------------------------\n");
@@ -98,7 +98,8 @@ public class AuthenticationHandler {
                         this.state = AuthState.AWAITING_LOGIN_REGISTER;
                         return false;
                     }
-                    if (databaseManager.verifyPassword(username, input)) {
+                    User user = databaseManager.verifyPassword(username, input);
+                    if (user != null) {
                         clientSession.writer("\n-----------------------------------------------\n" +
                                          "|         Authentication successful.          |\n" +
                                          "-----------------------------------------------\n\n" +
@@ -108,8 +109,7 @@ public class AuthenticationHandler {
                                          "|  Please wait while we find another          |\n" +
                                          "|  player to join you.                        |\n" +
                                          "-----------------------------------------------\n\n");
-                        clientSession.setRank(databaseManager.getRank(username));
-                        clientSession.setUsername(username);
+                        clientSession.setUser(user);
                         return true;
                     } else {
                         clientSession.writer("\n-----------------------------------------------\n" +
@@ -141,10 +141,10 @@ public class AuthenticationHandler {
                                         "|  Please wait while we find another          |\n" +
                                         "|  player to join you.                        |\n" +
                                         "-----------------------------------------------\n\n");
-                        
-                        if(databaseManager.register(this.username, input)){
-                            clientSession.setRank(databaseManager.getRank(username));
-                            clientSession.setUsername(username);
+
+                        User user = databaseManager.register(this.username, input);
+                        if(user != null){
+                            clientSession.setUser(user);
                             return true;
                         }
                         else{

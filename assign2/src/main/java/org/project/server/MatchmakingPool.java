@@ -21,9 +21,9 @@ public class MatchmakingPool implements Runnable {
             Iterator<ClientSession> iterator = simplePlayers.iterator();
             while (iterator.hasNext()) {
                 ClientSession client = iterator.next();
-                if (!client.isOnline() && Duration.between(client.getLastOnline(), LocalDateTime.now()).toSeconds() >= 60) {
+                if (!client.getUser().isOnline() && Duration.between(client.getUser().getLastOnline(), LocalDateTime.now()).toSeconds() >= 60) {
                     iterator.remove();
-                    System.out.println("Client " + client.getUsername() + " removed from matchmaking pool due to inactivity.");
+                    System.out.println("Client " + client.getUser().getUsername() + " removed from matchmaking pool due to inactivity.");
                 }
             }
         }
@@ -39,7 +39,7 @@ public class MatchmakingPool implements Runnable {
                     ClientSession client2 = null;
 
                     for (ClientSession client : simplePlayers) {
-                        if (client.isOnline()) {
+                        if (client.getUser().isOnline()) {
                             if (client1 == null) {
                                 client1 = client;
                             } else if (client2 == null) {

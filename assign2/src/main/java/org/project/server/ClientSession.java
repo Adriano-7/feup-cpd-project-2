@@ -23,10 +23,7 @@ public class ClientSession implements Runnable {
     private ClientStateEnum state;
     private AuthenticationHandler authHandler;
     private final MatchmakingPool matchmakingPool;
-    private String username = null;
-    private Integer rank = null;
-    private Boolean isOnline = true;
-    private LocalDateTime lastOnline = LocalDateTime.now();
+    private User user = null;
 
     public ClientSession(SSLSocket clientSocket, MatchmakingPool matchmakingPool, Server server) {
         this.clientSocket = clientSocket;
@@ -64,9 +61,7 @@ public class ClientSession implements Runnable {
             }
         }
         if(state != ClientStateEnum.INITIAL && state != ClientStateEnum.AUTHENTICATING){
-            isOnline = false;
-            lastOnline = LocalDateTime.now();
-            server.getDatabaseManager().updateClient(username, rank, lastOnline);
+            user.goOffline(server.getDatabaseManager());
         }
     }
 
@@ -133,20 +128,12 @@ public class ClientSession implements Runnable {
             System.out.println("Error sending message to client: " + e.getMessage());
         }
     }
-    public void setUsername(String username) {
-        this.username = username;
+
+    public User getUser() {
+        return user;
     }
-    public void setRank(Integer rank) {
-        this.rank = rank;
-    }
-    public boolean isOnline() {
-        return isOnline;
-    }
-    public LocalDateTime getLastOnline() {
-        return lastOnline;
-    }
-    public String getUsername() {
-        return username;
+    public void setUser(User user) {
+        this.user = user;
     }
 
 }
