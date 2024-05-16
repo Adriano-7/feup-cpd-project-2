@@ -35,31 +35,49 @@ public class MatchmakingPool implements Runnable {
             checkAndRemoveOfflineClients();
             synchronized (lock) {
                 if (simplePlayers.size() >= 2) {
-                    ClientSession client1 = simplePlayers.removeFirst();
-                    ClientSession client2 = simplePlayers.removeFirst();
+                    ClientSession client1 = null;
+                    ClientSession client2 = null;
 
-                    client1.changeState(ClientStateEnum.IN_GAME);
-                    client2.changeState(ClientStateEnum.IN_GAME);
+                    for (ClientSession client : simplePlayers) {
+                        if (client.isOnline()) {
+                            if (client1 == null) {
+                                client1 = client;
+                            } else if (client2 == null) {
+                                client2 = client;
+                            }
 
-                    UUID gameId = UUID.randomUUID();
-
-                    Game game = null;
-                    try {
-                        game = new Game(gameId, client1, client2);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
+                            if (client1 != null && client2 != null) {
+                                break;
+                            }
+                        }
                     }
-                    synchronized (ClientSession.games) {
-                        ClientSession.games.put(gameId, game);
-                    }
 
-                    client1.setGameId(gameId);
-                    client2.setGameId(gameId);
+                    if (client1 != null && client2 != null) {
+                        simplePlayers.remove(client1);
+                        simplePlayers.remove(client2);
+
+                        client1.changeState(ClientStateEnum.IN_GAME);
+                        client2.changeState(ClientStateEnum.IN_GAME);
+
+                        UUID gameId = UUID.randomUUID();
+
+                        Game game = null;
+                        try {
+                            game = new Game(gameId, client1, client2);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                        synchronized (ClientSession.games) {
+                            ClientSession.games.put(gameId, game);
+                        }
+
+                        client1.setGameId(gameId);
+                        client2.setGameId(gameId);
+                    }
                 }
             }
         }
     }
-
     public void addClient(ClientSession client) {
         synchronized (lock) {
             simplePlayers.add(client);

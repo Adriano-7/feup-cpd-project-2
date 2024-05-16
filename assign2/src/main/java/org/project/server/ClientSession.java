@@ -26,7 +26,7 @@ public class ClientSession implements Runnable {
     private String username = null;
     private Integer rank = null;
     private Boolean isOnline = true;
-    private LocalDateTime lastOnline = null;
+    private LocalDateTime lastOnline = LocalDateTime.now();
 
     public ClientSession(SSLSocket clientSocket, MatchmakingPool matchmakingPool, Server server) {
         this.clientSocket = clientSocket;
