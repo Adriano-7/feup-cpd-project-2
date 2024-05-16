@@ -13,15 +13,16 @@ import javax.net.ssl.*;
 public class ClientSession implements Runnable {
     private static ArrayList<ClientSession> clientSessions = new ArrayList<>();
     public static Map<UUID,Game> games = new HashMap<>();
-    private Server server;
-    private UUID gameId;
     private final SSLSocket clientSocket;
+    private final Server server;
+    private UUID gameId;
     private BufferedReader reader;
     private BufferedWriter writer;
-    private ClientStateEnum state;
-    private AuthenticationHandler authHandler;
     private final MatchmakingPool matchmakingPool;
     private boolean addedToMatchmakingPool = false;
+    private ClientStateEnum state;
+    private String username = null;
+    private Integer rank = null;
 
     public ClientSession(SSLSocket clientSocket, MatchmakingPool matchmakingPool, Server server) {
         this.clientSocket = clientSocket;
@@ -29,7 +30,6 @@ public class ClientSession implements Runnable {
         this.state = ClientStateEnum.INITIAL;
         this.matchmakingPool = matchmakingPool;
         this.server = server;
-        this.authHandler = server.getAuthHandler();
         this.gameId = null;
 
         try {
@@ -64,7 +64,6 @@ public class ClientSession implements Runnable {
     }
 
     private void handleInput(String input) throws IOException {
-        //writer.println("State: " + state);
         switch (state) {
             case INITIAL:
                 //TODO: Handle token
@@ -80,12 +79,8 @@ public class ClientSession implements Runnable {
                 this.state = ClientStateEnum.AUTHENTICATING;
                 break;
             case AUTHENTICATING:
-                if (authHandler == null) {
-                    authHandler = server.getAuthHandler();
-                }
-                if (authHandler.handleInput(input, writer)) {
+                if (server.getAuthHandler().handleInput(input, this)) {
                     this.state = ClientStateEnum.WAITING_ROOM;
-                    authHandler = null;
                 }
                 break;
             case WAITING_ROOM:
@@ -134,5 +129,11 @@ public class ClientSession implements Runnable {
 
     public void updateMatchmakingStatus(boolean isInMatchmakingPool) {
         this.addedToMatchmakingPool = isInMatchmakingPool;
+    }
+    public void setUsername(String username) {
+        this.username = username;
+    }
+    public void setRank(Integer rank) {
+        this.rank = rank;
     }
 }
