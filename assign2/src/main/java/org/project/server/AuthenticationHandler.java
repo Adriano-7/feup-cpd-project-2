@@ -16,7 +16,6 @@ public class AuthenticationHandler {
 
     private AuthState state;
     private String username;
-    private Integer rank;
     private DatabaseManager databaseManager;
 
     public AuthenticationHandler(DatabaseManager databaseManager) {
@@ -24,7 +23,7 @@ public class AuthenticationHandler {
         this.databaseManager = databaseManager;
     }
 
-    public boolean handleInput(String input, ClientSession clientSession) throws IOException {
+    public boolean handleInput(String input, BufferedWriter writer) throws IOException {
         switch (this.state) {
             case AWAITING_LOGIN_REGISTER:
                 if (input != null && !input.trim().isEmpty()) {
@@ -34,16 +33,19 @@ public class AuthenticationHandler {
 
                     if(input.equals("0")){
                         this.state = AuthState.AWAITING_REGISTER_USERNAME;
-                        clientSession.writer(to_print);
+                        writer.write(to_print);
+                        writer.flush();
                     } 
                     else if(input.equals("1")){
                         this.state = AuthState.AWAITING_LOGIN_USERNAME;
-                        clientSession.writer(to_print);
+                        writer.write(to_print);
+                        writer.flush();
                     }
                     else{
-                        clientSession.writer("\n-----------------------------------------------\n" +
-                                             "|   Invalid input, please try again           |\n" +
-                                             "-----------------------------------------------\n");
+                        writer.write("\n-----------------------------------------------\n" +
+                                         "|   Invalid input, please try again           |\n" +
+                                         "-----------------------------------------------\n");
+                        writer.flush();
                     }
                 }
                 return false;
@@ -56,14 +58,16 @@ public class AuthenticationHandler {
                     }
                     if(databaseManager.verifyUsername(username)){
                         this.state = AuthState.AWAITING_LOGIN_PASSWORD;
-                        clientSession.writer("\n-----------------------------------------------\n" +
-                                             "|   Please enter your password.               |\n" +
-                                              "-----------------------------------------------\n");
+                        writer.write("\n-----------------------------------------------\n" +
+                                         "|   Please enter your password.               |\n" +
+                                         "-----------------------------------------------\n");
+                        writer.flush();
                     }
                     else {
-                        clientSession.writer("\n-----------------------------------------------\n" +
+                        writer.write("\n-----------------------------------------------\n" +
                                          "|   Invalid username. Please try again.       |\n" +
                                          "-----------------------------------------------\n");
+                        writer.flush();
                     }
                 }
                 return false;
@@ -76,15 +80,17 @@ public class AuthenticationHandler {
                         return false;
                     }
                     if(databaseManager.usernameExists(username)){
-                        clientSession.writer("\n-----------------------------------------------\n" +
+                        writer.write("\n-----------------------------------------------\n" +
                                          "| Username already exists. Please try again.  |\n" +
                                          "-----------------------------------------------\n");
+                        writer.flush();
                     }
                     else {
                         this.state = AuthState.AWAITING_REGISTER_PASSWORD;
-                        clientSession.writer("\n-----------------------------------------------\n" +
-                                            "|   Please enter your password.               |\n" +
-                                            "-----------------------------------------------\n");
+                        writer.write("\n-----------------------------------------------\n" +
+                                         "|   Please enter your password.               |\n" +
+                                         "-----------------------------------------------\n");
+                        writer.flush();
                     }
                 }
                 return false;
@@ -96,7 +102,7 @@ public class AuthenticationHandler {
                         return false;
                     }
                     if (databaseManager.verifyPassword(username, input)) {
-                        clientSession.writer("\n-----------------------------------------------\n" +
+                        writer.write("\n-----------------------------------------------\n" +
                                          "|         Authentication successful.          |\n" +
                                          "-----------------------------------------------\n\n" +
                                          "-----------------------------------------------\n" +
@@ -105,20 +111,20 @@ public class AuthenticationHandler {
                                          "|  Please wait while we find another          |\n" +
                                          "|  player to join you.                        |\n" +
                                          "-----------------------------------------------\n\n");
-                        //TODO: Update clientSession username and rank attributes
-                        //clientSession.setRank(rank);
-                        clientSession.setUsername(username);
+                        writer.flush();
                         return true;
                     } else {
-                        clientSession.writer("\n-----------------------------------------------\n" +
+                        writer.write("\n-----------------------------------------------\n" +
                                          "|   Invalid password. Please try again.       |\n" +
                                          "-----------------------------------------------\n");
+                        writer.flush();
                         this.state = AuthState.AWAITING_LOGIN_PASSWORD;
                     }
                 } else {
-                    clientSession.writer("\n-----------------------------------------------\n" +
+                    writer.write("\n-----------------------------------------------\n" +
                                      "|   Invalid password. Please try again.       |\n" +
                                      "-----------------------------------------------\n\n");
+                    writer.flush();
                 }
                 return false;
 
@@ -128,7 +134,7 @@ public class AuthenticationHandler {
                         this.state = AuthState.AWAITING_LOGIN_REGISTER;
                         return false;
                     }
-                    clientSession.writer("\n-----------------------------------------------\n" +
+                        writer.write("\n-----------------------------------------------\n" +
                                         "|         Authentication successful.          |\n" +
                                         "-----------------------------------------------\n\n" +
                                         "-----------------------------------------------\n" +
@@ -137,19 +143,22 @@ public class AuthenticationHandler {
                                         "|  Please wait while we find another          |\n" +
                                         "|  player to join you.                        |\n" +
                                         "-----------------------------------------------\n\n");
+                        writer.flush();
                         if(databaseManager.register(this.username, input)){
                             return true;
                         }
                         else{
-                            clientSession.writer("\n-----------------------------------------------\n" +
+                            writer.write("\n-----------------------------------------------\n" +
                                                 "| Username already exists. Please try again.  |\n" +
                                                 "-----------------------------------------------\n");
+                            writer.flush();
                             this.state = AuthState.AWAITING_REGISTER_USERNAME;
                         }
                 } else {
-                    clientSession.writer("\n-----------------------------------------------\n" +
+                    writer.write("\n-----------------------------------------------\n" +
                                      "|   Invalid password. Please try again.       |\n" +
                                      "-----------------------------------------------\n");
+                    writer.flush();
                 }
                 return false;
             default:
