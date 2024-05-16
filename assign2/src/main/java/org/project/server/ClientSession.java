@@ -1,11 +1,6 @@
 package org.project.server;
 
-import org.project.database.DatabaseManager;
-
 import java.io.*;
-import java.net.Socket;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,22 +8,20 @@ import java.util.UUID;
 import javax.net.ssl.*;
 
 public class ClientSession implements Runnable {
-    private static ArrayList<ClientSession> clientSessions = new ArrayList<>();
+    private static ArrayList<User> users = new ArrayList<>();
     public static Map<UUID,Game> games = new HashMap<>();
     private Server server;
     private UUID gameId;
     private final SSLSocket clientSocket;
     private BufferedReader reader;
     private BufferedWriter writer;
-    private ClientStateEnum state;
     private AuthenticationHandler authHandler;
     private final MatchmakingPool matchmakingPool;
     private User user;
 
     public ClientSession(SSLSocket clientSocket, MatchmakingPool matchmakingPool, Server server) {
         this.clientSocket = clientSocket;
-        clientSessions.add(this);
-        this.state = ClientStateEnum.INITIAL;
+        users.add(user);
         this.matchmakingPool = matchmakingPool;
         this.server = server;
         this.authHandler = server.getAuthHandler();
@@ -61,13 +54,13 @@ public class ClientSession implements Runnable {
                 break;
             }
         }
-        if(state != ClientStateEnum.INITIAL && state != ClientStateEnum.AUTHENTICATING){
+        if(user.getState() != UserStateEnum.INITIAL && user.getState() != UserStateEnum.AUTHENTICATING){
             user.goOffline(server.getDatabaseManager());
         }
     }
 
     private void handleInput(String input) throws IOException {
-        switch (state) {
+        switch (user.getState()) {
             case INITIAL:
                 //TODO: Handle token
                 writer.write(
@@ -79,14 +72,14 @@ public class ClientSession implements Runnable {
                                 "-----------------------------------------------\n");
                 writer.flush();
 
-                this.state = ClientStateEnum.AUTHENTICATING;
+                user.setState(UserStateEnum.AUTHENTICATING);
                 break;
             case AUTHENTICATING:
                 if (authHandler == null) {
                     authHandler = server.getAuthHandler();
                 }
                 if (authHandler.handleInput(input, this)) {
-                    this.state = ClientStateEnum.WAITING_ROOM;
+                    user.setState(UserStateEnum.WAITING_ROOM);
                     matchmakingPool.addClient(this);
                     authHandler = null;
                 }
@@ -107,7 +100,7 @@ public class ClientSession implements Runnable {
                         "-----------------------------------------------\n");
                 writer.flush();
 
-                state = ClientStateEnum.WAITING_ROOM;
+                user.setState(UserStateEnum.WAITING_ROOM);
                 // Handle left game logic
                 break;
             default:
@@ -115,8 +108,8 @@ public class ClientSession implements Runnable {
         }
     }
 
-    public void changeState(ClientStateEnum newState) {
-        this.state = newState;
+    public void changeState(UserStateEnum newState) {
+        user.setState(newState);
     }
     public void setGameId(UUID gameId) {
         this.gameId = gameId;

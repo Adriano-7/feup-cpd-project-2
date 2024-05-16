@@ -1,7 +1,6 @@
 package org.project.server;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.UUID;
 import java.util.Random;
 public class Game {
@@ -116,8 +115,8 @@ public class Game {
                                 "   The final result is " + sum + " which is " + winner + ".\n" +
                                 "-----------------------------------------------\n");
 
-                        startingClient.changeState(ClientStateEnum.GAME_OVER);
-                        nonStartingClient.changeState(ClientStateEnum.GAME_OVER);
+                        startingClient.changeState(UserStateEnum.GAME_OVER);
+                        nonStartingClient.changeState(UserStateEnum.GAME_OVER);
 
                         ClientSession.games.remove(gameId);
                         startingClient.setGameId(null);

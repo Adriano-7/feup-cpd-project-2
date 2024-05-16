@@ -31,7 +31,7 @@ public class DatabaseManager {
         } finally {
             writeLock.unlock();
         }
-        user.populate(username, 0, token, true, localDateTime);
+        user.populate(username, 0, token,  localDateTime);
         return true;
     }
 
@@ -74,7 +74,7 @@ public class DatabaseManager {
                     if(BCrypt.checkpw(password, parts[2])){
                         parts[4] = UUID.randomUUID().toString();
                         parts[5] = LocalDateTime.now().toString();
-                        user.populate(parts[0], Integer.parseInt(parts[1]), parts[4], true, LocalDateTime.now());
+                        user.populate(parts[0], Integer.parseInt(parts[1]), parts[4], LocalDateTime.now());
                         line = String.join(",", parts);
                         verified = true;
                     }
