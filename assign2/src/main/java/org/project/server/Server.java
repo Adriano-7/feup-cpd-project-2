@@ -61,10 +61,6 @@ public class Server {
         }
     }
 
-    public AuthenticationHandler getAuthHandler() {
-        return new AuthenticationHandler(databaseManager);
-    }
-
     public DatabaseManager getDatabaseManager() {
         return databaseManager;
     }

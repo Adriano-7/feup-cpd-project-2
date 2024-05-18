@@ -14,7 +14,7 @@ public class User {
         this.username = null;
         this.rank = null;
         this.token = null;
-        this.state = UserStateEnum.INITIAL;
+        this.state = UserStateEnum.AUTHENTICATING;
         this.lastOnline = null;
     }
 

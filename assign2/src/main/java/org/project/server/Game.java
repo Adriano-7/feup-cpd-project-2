@@ -27,7 +27,7 @@ public class Game {
         this.startingClient = startingClient;
         this.nonStartingClient = nonStartingClient;
 
-        startingClient.writer(
+        startingClient.write(
                 "-----------------------------------------------\n" +
                 "|                GAME STARTED                 |\n" +
                 "|---------------------------------------------|\n" +
@@ -38,7 +38,7 @@ public class Game {
                 "|  play as Even ['even'] or as Odd ['odd'].   |\n" +
                 "-----------------------------------------------\n");
 
-        nonStartingClient.writer(
+        nonStartingClient.write(
                     "-----------------------------------------------\n" +
                         "|                GAME STARTED                 |\n" +
                         "|---------------------------------------------|\n" +
@@ -54,7 +54,7 @@ public class Game {
                 if(client == startingClient){
                     if (input.equals("odd") || input.equals("even")) {
                         parity = input;
-                        nonStartingClient.writer(
+                        nonStartingClient.write(
                                 "\n-----------------------------------------------\n" +
                                 "   Opponent has chosen " + input + ".          \n" +
                                 "|---------------------------------------------|\n" +
@@ -63,7 +63,7 @@ public class Game {
 
                         state = GameState.GUESS_SELECTION;
                     } else {
-                        client.writer(
+                        client.write(
                                 "\n-----------------------------------------------\n" +
                                     "| Invalid input. Please type 'even' or 'odd'. |\n" +
                                      "-----------------------------------------------\n");
@@ -74,14 +74,14 @@ public class Game {
                     int guess = Integer.parseInt(input);
                     if (client == startingClient) {
                         number1 = guess;
-                        nonStartingClient.writer(
+                        nonStartingClient.write(
                                 "\n-----------------------------------------------\n" +
                                 "|   The other player made his guess.          |\n" +
                                 "|   Please make yours.                        |\n" +
                                 "-----------------------------------------------\n");
                     } else {
                         number2 = guess;
-                        startingClient.writer(
+                        startingClient.write(
                                 "\n-----------------------------------------------\n" +
                                 "|   The other player made his guess.          |\n" +
                                 "|   Please make yours.                        |\n" +
@@ -100,7 +100,7 @@ public class Game {
                             losingClient = startingClient;
                         }
 
-                        winningClient.writer(
+                        winningClient.write(
                                 "\n-----------------------------------------------\n" +
                                 "|        Congratulations, you've Won!         |\n" +
                                 "|---------------------------------------------|\n" +
@@ -108,7 +108,7 @@ public class Game {
                                 "-----------------------------------------------\n");
 
 
-                        losingClient.writer(
+                        losingClient.write(
                                 "\n-----------------------------------------------\n" +
                                 "|          Bad Luck... you've Lost!           |\n" +
                                 "|---------------------------------------------|\n" +
@@ -118,13 +118,23 @@ public class Game {
                         startingClient.changeState(UserStateEnum.GAME_OVER);
                         nonStartingClient.changeState(UserStateEnum.GAME_OVER);
 
+                       String message = (
+                                        "-----------------------------------------------\n" +
+                                        "|                  GAME OVER                  |\n" +
+                                        "|---------------------------------------------|\n" +
+                                        "|  Thanks for playing! Press to continue.     |\n" +
+                                        "-----------------------------------------------\n");
+
+                       winningClient.write(message);
+                       losingClient.write(message);
+
                         ClientSession.games.remove(gameId);
                         startingClient.setGameId(null);
                         nonStartingClient.setGameId(null);
 
                     }
                 } catch (NumberFormatException e) {
-                    client.writer(
+                    client.write(
                             "\n-----------------------------------------------\n" +
                             "|  Invalid input. Please enter a number.      |\n" +
                             "-----------------------------------------------\n");

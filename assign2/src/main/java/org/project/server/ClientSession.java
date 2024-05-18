@@ -24,19 +24,13 @@ public class ClientSession implements Runnable {
         users.add(user);
         this.matchmakingPool = matchmakingPool;
         this.server = server;
-        this.authHandler = server.getAuthHandler();
+        this.authHandler = null;
         this.gameId = null;
         this.user = new User();
 
         try {
             this.reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             this.writer = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
-            writer.write("\n-----------------------------------------------\n" +
-                             "|            Welcome to the Server!           |\n" +
-                             "-----------------------------------------------\n\n");
-            writer.flush();
-
-            handleInput("");
         }  catch (IOException e) {
             System.out.println("Exception creating reader and writer: " + e.getMessage());
         }
@@ -54,29 +48,16 @@ public class ClientSession implements Runnable {
                 break;
             }
         }
-        if(user.getState() != UserStateEnum.INITIAL && user.getState() != UserStateEnum.AUTHENTICATING){
+        if(user.getState() != UserStateEnum.AUTHENTICATING){
             user.goOffline(server.getDatabaseManager());
         }
     }
 
     private void handleInput(String input) throws IOException {
         switch (user.getState()) {
-            case INITIAL:
-                //TODO: Handle token
-                writer.write(
-                            "\n-----------------------------------------------\n" +
-                                "|              Select an option:              |\n" +
-                                "|---------------------------------------------|\n" +
-                                "|   Register                             [0]  |\n" +
-                                "|   Login                                [1]  |\n" +
-                                "-----------------------------------------------\n");
-                writer.flush();
-
-                user.setState(UserStateEnum.AUTHENTICATING);
-                break;
             case AUTHENTICATING:
                 if (authHandler == null) {
-                    authHandler = server.getAuthHandler();
+                    authHandler = new AuthenticationHandler(server.getDatabaseManager());
                 }
                 if (authHandler.handleInput(input, this)) {
                     user.setState(UserStateEnum.WAITING_ROOM);
@@ -92,16 +73,16 @@ public class ClientSession implements Runnable {
                 }
                 break;
             case GAME_OVER:
-                writer.write(
-                        "-----------------------------------------------\n" +
-                        "|                  GAME OVER                  |\n" +
-                        "|---------------------------------------------|\n" +
-                        "|  Thanks for playing!                        |\n" +
-                        "-----------------------------------------------\n");
-                writer.flush();
-
                 user.setState(UserStateEnum.WAITING_ROOM);
-                // Handle left game logic
+                matchmakingPool.addClient(this);
+                write(
+                                "-----------------------------------------------\n" +
+                                "|        Welcome to the Waiting Room.         |\n" +
+                                "-----------------------------------------------\n" +
+                                "|  Please wait while we find another          |\n" +
+                                "|  player to join you.                        |\n" +
+                                "-----------------------------------------------\n\n"
+                );
                 break;
             default:
                 break;
@@ -114,7 +95,7 @@ public class ClientSession implements Runnable {
     public void setGameId(UUID gameId) {
         this.gameId = gameId;
     }
-    public void writer(String message) {
+    public void write(String message) {
         try {
             writer.write(message);
             writer.flush();
