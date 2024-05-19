@@ -1,5 +1,9 @@
 package org.project.server;
 
+import org.project.server.matchmaking.MatchmakingStrategy;
+import org.project.server.matchmaking.RankedMatchmaking;
+import org.project.server.matchmaking.SimpleMatchmaking;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,14 +20,16 @@ public class ClientSession implements Runnable {
     private BufferedReader reader;
     private BufferedWriter writer;
     private AuthenticationHandler authHandler;
-    private final MatchmakingPool matchmakingPool;
+    private final MatchmakingStrategy simpleMatchmakingPool;
+    private final MatchmakingStrategy rankedMatchmakingPool;
     private User user;
 
-    public ClientSession(SSLSocket clientSocket, MatchmakingPool matchmakingPool, Server server) {
+    public ClientSession(SSLSocket clientSocket, MatchmakingStrategy simpleMatchmakingPool, MatchmakingStrategy rankedMatchmakingPool, Server server) {
         this.clientSocket = clientSocket;
         this.user = new User(this);
         users.add(user);
-        this.matchmakingPool = matchmakingPool;
+        this.simpleMatchmakingPool = simpleMatchmakingPool;
+        this.rankedMatchmakingPool = rankedMatchmakingPool;
         this.server = server;
         this.authHandler = null;
         this.gameId = null;
@@ -92,11 +98,11 @@ public class ClientSession implements Runnable {
 
                     if (input.equals("0")) {
                         user.setState(UserStateEnum.WAITING_ROOM);
-                        MatchmakingPool.addClient(this.user, "Simple");
+                        simpleMatchmakingPool.addClient(this.user);
                         write(welcomeMessage);
                     } else if (input.equals("1")) {
                         user.setState(UserStateEnum.WAITING_ROOM);
-                        MatchmakingPool.addClient(this.user, "Ranked");
+                        rankedMatchmakingPool.addClient(this.user);
                         write(welcomeMessage);
                     } else {
                         write("Invalid input. Please enter 1 or 2.\n");

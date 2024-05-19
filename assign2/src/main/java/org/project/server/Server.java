@@ -1,6 +1,9 @@
 package org.project.server;
 
 import org.project.database.DatabaseManager;
+import org.project.server.matchmaking.MatchmakingStrategy;
+import org.project.server.matchmaking.RankedMatchmaking;
+import org.project.server.matchmaking.SimpleMatchmaking;
 
 import java.io.*;
 import java.net.*;
@@ -41,12 +44,15 @@ public class Server {
     }
 
     public void start() throws IOException {
-        MatchmakingPool matchmakingPool = new MatchmakingPool();
-        Thread.ofVirtual().start(matchmakingPool);
+        MatchmakingStrategy simpleMatchmakingPool = new SimpleMatchmaking();
+        MatchmakingStrategy rankedMatchmakingPool = new RankedMatchmaking();
+
+        Thread simpleThread = Thread.ofVirtual().start(simpleMatchmakingPool);
+        Thread rankedThread = Thread.ofVirtual().start(rankedMatchmakingPool);
 
         while (!this.serverSocket.isClosed()) {
             SSLSocket clientSocket = (SSLSocket) this.serverSocket.accept();
-            ClientSession clientSession = new ClientSession(clientSocket, matchmakingPool, this);
+            ClientSession clientSession = new ClientSession(clientSocket, simpleMatchmakingPool, rankedMatchmakingPool, this);
             Thread clientThread = new Thread(clientSession);
             Thread.ofVirtual().start(clientSession);
         }

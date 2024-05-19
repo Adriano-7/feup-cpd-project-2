@@ -8,9 +8,12 @@ import java.util.concurrent.locks.*;
 import org.mindrot.jbcrypt.BCrypt;
 import org.project.server.AuthenticationHandler;
 import org.project.server.ClientSession;
-import org.project.server.MatchmakingPool;
 import org.project.server.User;
+import org.project.server.matchmaking.RankedMatchmaking;
+import org.project.server.matchmaking.SimpleMatchmaking;
+
 import java.time.LocalDateTime;
+
 
 public class DatabaseManager {
     private static final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
@@ -161,9 +164,16 @@ public class DatabaseManager {
                             return false;
                         }
 
-                        User user = MatchmakingPool.findUserByUsername(parts[0]);
-                        if(user != null){
-                            clientSession.setUser(MatchmakingPool.findUserByUsername(parts[0]));
+                        User userRanked = RankedMatchmaking.findUserByUsername(parts[0]);
+                        User userSimple = SimpleMatchmaking.findUserByUsername(parts[0]);
+                        if(userRanked != null){
+                            clientSession.setUser(userRanked);
+                            clientSession.getUser().goOnline();
+                            clientSession.getUser().setClientSession(clientSession);
+                            return true;
+                        }
+                        else if(userSimple != null){
+                            clientSession.setUser(userSimple);
                             clientSession.getUser().goOnline();
                             clientSession.getUser().setClientSession(clientSession);
                             return true;
