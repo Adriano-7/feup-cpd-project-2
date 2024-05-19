@@ -7,7 +7,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import org.project.database.DatabaseManager;
 
 public class AuthenticationHandler {

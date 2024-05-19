@@ -4,9 +4,7 @@ import org.project.database.DatabaseManager;
 import org.project.server.matchmaking.MatchmakingStrategy;
 import org.project.server.matchmaking.RankedMatchmaking;
 import org.project.server.matchmaking.SimpleMatchmaking;
-
 import java.io.*;
-import java.net.*;
 import javax.net.ssl.*;
 import java.security.*;
 import java.security.cert.CertificateException;

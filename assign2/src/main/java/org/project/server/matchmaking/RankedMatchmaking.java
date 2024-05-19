@@ -1,11 +1,6 @@
 package org.project.server.matchmaking;
 
-import org.project.server.ClientSession;
-import org.project.server.Game;
 import org.project.server.User;
-import org.project.server.UserStateEnum;
-
-import java.io.IOException;
 import java.util.*;
 
 public class RankedMatchmaking implements MatchmakingStrategy {
@@ -40,36 +35,41 @@ public class RankedMatchmaking implements MatchmakingStrategy {
         return null;
     }
 
-    @Override
-    public void handleMatches() {
-        if (rankedPlayers.size() >= 2) {
-            List<User> matchedPlayers = new ArrayList<>();
-            int maxDifference = 5; // Initial score difference threshold
-            long waitTime = 0; // Time in milliseconds to wait before increasing the threshold
-            long lastThresholdIncreaseTime = System.currentTimeMillis(); // Time when the threshold was last increased
+@Override
+public void handleMatches() {
 
-            while (matchedPlayers.size() < 2 && !rankedPlayers.isEmpty()) {
-                User player = rankedPlayers.poll();
-                if (matchedPlayers.isEmpty() || Math.abs(player.getScore() - matchedPlayers.get(0).getScore()) <= maxDifference) {
-                    matchedPlayers.add(player);
-                } else {
-                    rankedPlayers.offer(player);
-                    long currentTime = System.currentTimeMillis();
-                    if (currentTime - lastThresholdIncreaseTime >= waitTime) {
-                        maxDifference += 5; // Increase the difference threshold
-                        lastThresholdIncreaseTime = currentTime;
-                        waitTime += 30000; // Wait for 30 seconds before increasing the threshold again
-                    }
+    if (rankedPlayers.size() >= 2) {
+        List<User> matchedPlayers = new ArrayList<>();
+        int maxDifference = 5; // Initial score difference
+        long waitTime = 0; // Time before increasing the threshold
+        long lastThresholdIncreaseTime = System.currentTimeMillis(); // Time when the threshold was last increased
+        long maxWaitTime = 120000; // Maximum wait time before giving up
+
+        while (matchedPlayers.size() < 2 && !rankedPlayers.isEmpty() && System.currentTimeMillis() - lastThresholdIncreaseTime < maxWaitTime) {
+            User player = rankedPlayers.poll();
+
+            if (matchedPlayers.isEmpty() || Math.abs(player.getScore() - matchedPlayers.get(0).getScore()) <= maxDifference) {
+                matchedPlayers.add(player);
+            } else {
+                rankedPlayers.offer(player);
+
+                long currentTime = System.currentTimeMillis();
+                if (currentTime - lastThresholdIncreaseTime >= waitTime) {
+                    maxDifference += 5;
+                    lastThresholdIncreaseTime = currentTime;
+                    waitTime += 5000;
                 }
             }
+        }
 
-            if (matchedPlayers.size() == 2) {
-                makeMatch(matchedPlayers.get(0), matchedPlayers.get(1));
-            } else {
-                rankedPlayers.addAll(matchedPlayers);
-            }
+        if (matchedPlayers.size() == 2) {
+            makeMatch(matchedPlayers.get(0), matchedPlayers.get(1));
+        } else {
+            rankedPlayers.addAll(matchedPlayers);
         }
     }
+
+}
 
     private void checkAndRemoveOfflineClients() {
         synchronized (lock) {

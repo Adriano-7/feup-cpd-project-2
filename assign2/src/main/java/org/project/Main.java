@@ -2,7 +2,6 @@ package org.project;
 
 import org.project.client.Client;
 import org.project.server.Server;
-
 import java.io.IOException;
 import java.util.Scanner;
 

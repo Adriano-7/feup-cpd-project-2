@@ -1,19 +1,11 @@
 package org.project.server.matchmaking;
 
-import org.project.server.ClientSession;
-import org.project.server.Game;
 import org.project.server.User;
-import org.project.server.UserStateEnum;
-
-import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.UUID;
-
-// SimpleMatchmaking.java
 public class SimpleMatchmaking implements MatchmakingStrategy {
     private static final List<User> simplePlayers = new ArrayList<>();
     private static final Object lock = new Object();

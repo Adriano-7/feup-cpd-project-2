@@ -4,7 +4,6 @@ import org.project.server.ClientSession;
 import org.project.server.Game;
 import org.project.server.User;
 import org.project.server.UserStateEnum;
-
 import java.io.IOException;
 import java.util.UUID;
 

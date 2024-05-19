@@ -11,9 +11,7 @@ import org.project.server.ClientSession;
 import org.project.server.User;
 import org.project.server.matchmaking.RankedMatchmaking;
 import org.project.server.matchmaking.SimpleMatchmaking;
-
 import java.time.LocalDateTime;
-
 
 public class DatabaseManager {
     private static final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();

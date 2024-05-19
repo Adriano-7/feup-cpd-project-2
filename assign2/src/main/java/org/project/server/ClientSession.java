@@ -1,9 +1,6 @@
 package org.project.server;
 
 import org.project.server.matchmaking.MatchmakingStrategy;
-import org.project.server.matchmaking.RankedMatchmaking;
-import org.project.server.matchmaking.SimpleMatchmaking;
-
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
