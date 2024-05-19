@@ -40,12 +40,21 @@ public class User {
     }
 
     public void goOffline(DatabaseManager databaseManager) {
-        state = UserStateEnum.OFFLINE;
-        lastOnline = LocalDateTime.now();
+        this.state = UserStateEnum.OFFLINE;
+        this.lastOnline = LocalDateTime.now();
         databaseManager.updateClient(username, rank, lastOnline);
         AuthenticationHandler.removeAuthenticatedUser(username);
     }
+
+    public void goOnline() {
+        this.state = UserStateEnum.WAITING_ROOM;
+        this.lastOnline = LocalDateTime.now();
+    }
     public ClientSession getClientSession() {
         return clientSession;
+    }
+
+    public void setClientSession(ClientSession clientSession) {
+        this.clientSession = clientSession;
     }
 }

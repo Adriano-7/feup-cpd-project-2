@@ -8,6 +8,7 @@ import java.util.concurrent.locks.*;
 import org.mindrot.jbcrypt.BCrypt;
 import org.project.server.AuthenticationHandler;
 import org.project.server.ClientSession;
+import org.project.server.MatchmakingPool;
 import org.project.server.User;
 import java.time.LocalDateTime;
 
@@ -160,8 +161,15 @@ public class DatabaseManager {
                             return false;
                         }
 
-                        clientSession.getUser().populate(parts[0], Integer.parseInt(parts[1]), parts[4], LocalDateTime.parse(parts[5]));
-                        return true;
+                        User user = MatchmakingPool.findUserByUsername(parts[0]);
+                        if(user != null){
+                            clientSession.setUser(MatchmakingPool.findUserByUsername(parts[0]));
+                            clientSession.getUser().goOnline();
+                            clientSession.getUser().setClientSession(clientSession);
+                            return true;
+                        }
+
+                        return false;
                     }
                 }
                 return false;

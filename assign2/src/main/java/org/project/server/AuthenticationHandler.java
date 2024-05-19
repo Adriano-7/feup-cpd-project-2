@@ -89,6 +89,7 @@ public class AuthenticationHandler {
                         this.token = newToken;
                         clientSession.write("AUTHENTICATED," + token + "\n");
                         successfulAuthentication(clientSession);
+                        MatchmakingPool.addClient(clientSession.getUser());
                         return true;
                     } else {
                         clientSession.write("REQUEST_PASSWORD\n");
@@ -115,6 +116,7 @@ public class AuthenticationHandler {
                         this.token = newToken;
                         clientSession.write("AUTHENTICATED," + token + "\n");
                         successfulAuthentication(clientSession);
+                        MatchmakingPool.addClient(clientSession.getUser());
                         return true;
                     } else {
                         clientSession.write("REQUEST_USERNAME\n");
@@ -166,4 +168,6 @@ public class AuthenticationHandler {
             writeLock.unlock();
         }
     }
+
+
 }

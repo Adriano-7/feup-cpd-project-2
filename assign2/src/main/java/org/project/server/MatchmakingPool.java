@@ -9,12 +9,8 @@ import java.util.List;
 import java.util.UUID;
 
 public class MatchmakingPool implements Runnable {
-    private final List<User> simplePlayers;
-    private final Object lock = new Object();
-
-    public MatchmakingPool() {
-        this.simplePlayers = new ArrayList<>();
-    }
+    private static final List<User> simplePlayers = new ArrayList<>();
+    private static final Object lock = new Object();
 
     private void checkAndRemoveOfflineClients() {
         synchronized (lock) {
@@ -34,6 +30,7 @@ public class MatchmakingPool implements Runnable {
     @Override
     public void run() {
         while (true) {
+            System.out.println(simplePlayers);
             checkAndRemoveOfflineClients();
             synchronized (lock) {
                 if (simplePlayers.size() >= 2) {
@@ -80,9 +77,20 @@ public class MatchmakingPool implements Runnable {
             }
         }
     }
-    public void addClient(User user) {
+    public static void addClient(User user) {
         synchronized (lock) {
             simplePlayers.add(user);
         }
+    }
+
+    public static User findUserByUsername(String username) {
+        synchronized (lock) {
+            for (User user : simplePlayers) {
+                if (user.getUsername().equals(username)) {
+                    return user;
+                }
+            }
+        }
+        return null;
     }
 }

@@ -61,7 +61,6 @@ public class ClientSession implements Runnable {
                 }
                 if (authHandler.handleInput(input, this)) {
                     user.setState(UserStateEnum.WAITING_ROOM);
-                    matchmakingPool.addClient(this.getUser());
                     authHandler = null;
                 }
                 break;
@@ -104,5 +103,9 @@ public class ClientSession implements Runnable {
     }
     public User getUser() {
         return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }
