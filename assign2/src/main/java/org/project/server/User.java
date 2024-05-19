@@ -7,23 +7,23 @@ import java.time.LocalDateTime;
 public class User {
     private UserStateEnum state;
     private String username;
-    private Integer rank;
+    private Integer score;
     private String token;
     private LocalDateTime lastOnline;
     private ClientSession clientSession;
 
     public User(ClientSession clientSession) {
         this.username = null;
-        this.rank = null;
+        this.score = null;
         this.token = null;
         this.state = UserStateEnum.AUTHENTICATING;
         this.lastOnline = null;
         this.clientSession = clientSession;
     }
 
-    public void populate(String username, int rank, String token, LocalDateTime lastOnline) {
+    public void populate(String username, int score, String token, LocalDateTime lastOnline) {
         this.username = username;
-        this.rank = rank;
+        this.score = score;
         this.token = token;
         this.lastOnline = lastOnline;
     }
@@ -42,7 +42,7 @@ public class User {
     public void goOffline(DatabaseManager databaseManager) {
         this.state = UserStateEnum.OFFLINE;
         this.lastOnline = LocalDateTime.now();
-        databaseManager.updateClient(username, rank, lastOnline);
+        databaseManager.updateClient(username, score, lastOnline);
         AuthenticationHandler.removeAuthenticatedUser(username);
     }
 
@@ -57,4 +57,11 @@ public class User {
     public void setClientSession(ClientSession clientSession) {
         this.clientSession = clientSession;
     }
+    public void incrementScore() {
+        this.score++;
+    }
+    public void decrementScore() {
+        this.score--;
+    }
+
 }

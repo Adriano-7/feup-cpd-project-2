@@ -115,8 +115,8 @@ public class Game {
                                 "   The final result is " + sum + " which is " + winner + ".\n" +
                                 "-----------------------------------------------\n");
 
-                        startingClient.changeState(UserStateEnum.GAME_OVER);
-                        nonStartingClient.changeState(UserStateEnum.GAME_OVER);
+                        losingClient.changeState(UserStateEnum.GAME_OVER);
+                        winningClient.changeState(UserStateEnum.GAME_OVER);
 
                        String message = (
                                         "-----------------------------------------------\n" +
@@ -129,8 +129,11 @@ public class Game {
                        losingClient.write(message);
 
                         ClientSession.games.remove(gameId);
-                        startingClient.setGameId(null);
-                        nonStartingClient.setGameId(null);
+                        winningClient.setGameId(null);
+                        winningClient.setGameId(null);
+
+                        winningClient.getUser().incrementScore();
+                        losingClient.getUser().decrementScore();
 
                     }
                 } catch (NumberFormatException e) {

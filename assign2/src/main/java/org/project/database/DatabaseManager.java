@@ -110,7 +110,7 @@ public class DatabaseManager {
         return verified;
     }
 
-    public void updateClient(String username, int rank, LocalDateTime lastOnline) {
+    public void updateClient(String username, int score, LocalDateTime lastOnline) {
         writeLock.lock();
         try {
             List<String> fileContent = new ArrayList<>();
@@ -119,7 +119,7 @@ public class DatabaseManager {
                 while ((line = reader.readLine()) != null) {
                     String[] parts = line.split(",");
                     if (parts[0].equals(username)) {
-                        parts[1] = Integer.toString(rank);
+                        parts[1] = Integer.toString(score);
                         parts[5] = lastOnline.toString();
                         line = String.join(",", parts);
                     }
