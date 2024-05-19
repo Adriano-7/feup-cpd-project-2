@@ -4,10 +4,7 @@ import org.project.database.DatabaseManager;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import javax.net.ssl.*;
 
 public class ClientSession implements Runnable {
@@ -24,6 +21,7 @@ public class ClientSession implements Runnable {
     private boolean addedToMatchmakingPool = false;
     private String username = null;
     private Integer rank = null;
+    boolean isRanked = false;
 
     public ClientSession(SSLSocket clientSocket, MatchmakingPool matchmakingPool, Server server) {
         this.clientSocket = clientSocket;
@@ -65,6 +63,10 @@ public class ClientSession implements Runnable {
         }
     }
 
+    public String getUsername() {
+        return this.username;
+    }
+
     private void handleInput(String input) throws IOException {
         switch (state) {
             case INITIAL:
@@ -90,10 +92,22 @@ public class ClientSession implements Runnable {
                 }
                 break;
             case WAITING_ROOM:
-                // Handle waiting room logic
+                writer.write(
+                        "\n-----------------------------------------------\n" +
+                        "|              Select an option:              |\n" +
+                        "|---------------------------------------------|\n" +
+                        "|   Play Simple Game                     [0]  |\n" +
+                        "|   Play Ranked Game                     [1]  |\n" +
+                        "-----------------------------------------------\n");
                 if(!addedToMatchmakingPool) {
-                    matchmakingPool.addClient("Simple",this);
-                    addedToMatchmakingPool = true;
+                    if(Objects.equals(input, "0")) {
+                        matchmakingPool.addClient("Simple",this);
+                        addedToMatchmakingPool = true;
+                    } else if(Objects.equals(input, "1")) {
+                        isRanked = true;
+                        matchmakingPool.addClient("Ranked",this);
+                        addedToMatchmakingPool = true;
+                    }
                 }
                 break;
             case IN_GAME:
@@ -111,7 +125,9 @@ public class ClientSession implements Runnable {
                 writer.flush();
 
                 state = ClientStateEnum.WAITING_ROOM;
-                // Handle left game logic
+                if(isRanked) {
+                    // TODO: Update rank
+                }
                 break;
             default:
                 break;

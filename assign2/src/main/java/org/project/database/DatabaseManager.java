@@ -157,7 +157,7 @@ public class DatabaseManager {
         }
     }
 
-    public int getUserPoints(String username) throws IOException {
+    public int getRank(String username) throws IOException {
         readLock.lock();
         try (BufferedReader reader = Files.newBufferedReader(Paths.get(DATABASE_FILE))) {
             String line;
@@ -173,19 +173,26 @@ public class DatabaseManager {
         }
     }
 
-    public int getRank(String username) throws IOException {
-        readLock.lock();
-        try (BufferedReader reader = Files.newBufferedReader(Paths.get(DATABASE_FILE))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(",");
+    public void updateRank(String username, int newRank) {
+        writeLock.lock();
+        try {
+            List<String> lines = Files.readAllLines(Paths.get(DATABASE_FILE));
+
+            for (int i = 0; i < lines.size(); i++) {
+                String[] parts = lines.get(i).split(",");
                 if (parts[0].equals(username)) {
-                    return Integer.parseInt(parts[1]);
+                    parts[1] = Integer.toString(newRank);
+                    lines.set(i, String.join(",", parts));
+                    break;
                 }
             }
-            return -1;
+
+            Files.write(Paths.get(DATABASE_FILE), lines);
+        } catch (IOException e) {
+            System.out.println("There was an issue updating the Elo rating: " + e.getMessage());
+            e.printStackTrace();
         } finally {
-            readLock.unlock();
+            writeLock.unlock();
         }
     }
 }
