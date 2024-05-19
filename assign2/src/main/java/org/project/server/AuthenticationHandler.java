@@ -2,7 +2,12 @@ package org.project.server;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import org.project.database.DatabaseManager;
 
 public class AuthenticationHandler {
@@ -19,6 +24,11 @@ public class AuthenticationHandler {
     private String username;
     private String token;
     private DatabaseManager databaseManager;
+    private static final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    private static final Lock readLock = lock.readLock();
+    private static final Lock writeLock = lock.writeLock();
+    private static Set<String> authenticatedUsers = new HashSet<>();
+
 
     public AuthenticationHandler(DatabaseManager databaseManager) {
         this.state = AuthState.INITIAL_STATE;
@@ -28,6 +38,7 @@ public class AuthenticationHandler {
     public boolean handleInput(String input, ClientSession clientSession) throws IOException {
         String[] inputParts = input.split(",");
         System.out.println("inputParts: " + Arrays.toString(inputParts));
+
         switch (this.state) {
             case INITIAL_STATE:
                 if (inputParts[0].equals("TOKEN")){
@@ -57,8 +68,13 @@ public class AuthenticationHandler {
             case AWAITING_LOGIN_USERNAME:
                 if (inputParts[0].equals("USERNAME") && inputParts.length == 2) {
                     this.username = inputParts[1];
+                    if(userIsAuthenticated(this.username)){
+                        clientSession.write("ALREADY_AUTHENTICATED\n");
+                        return false;
+                    }
                     if (databaseManager.verifyUsername(username)) {
                         this.state = AuthState.AWAITING_LOGIN_PASSWORD;
+
                         clientSession.write("REQUEST_PASSWORD\n");
                     } else {
                         clientSession.write("REQUEST_USERNAME\n");
@@ -112,8 +128,16 @@ public class AuthenticationHandler {
     }
 
     public void successfulAuthentication(ClientSession clientSession) {
+        String username = clientSession.getUser().getUsername();
+        writeLock.lock();
+        try {
+            authenticatedUsers.add(username);
+        } finally {
+            writeLock.unlock();
+        }
+
         clientSession.write(
-                        "\n-----------------------------------------------\n" +
+                "\n-----------------------------------------------\n" +
                         "|         Authentication successful.          |\n" +
                         "-----------------------------------------------\n\n" +
                         "-----------------------------------------------\n" +
@@ -125,4 +149,21 @@ public class AuthenticationHandler {
         );
     }
 
+    public static boolean userIsAuthenticated(String username){
+        readLock.lock();
+        try {
+            return authenticatedUsers.contains(username);
+        } finally {
+            readLock.unlock();
+        }
+    }
+
+    public static void removeAuthenticatedUser(String username){
+        writeLock.lock();
+        try {
+            authenticatedUsers.remove(username);
+        } finally {
+            writeLock.unlock();
+        }
+    }
 }

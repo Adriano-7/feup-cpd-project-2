@@ -6,6 +6,7 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.locks.*;
 import org.mindrot.jbcrypt.BCrypt;
+import org.project.server.AuthenticationHandler;
 import org.project.server.ClientSession;
 import org.project.server.User;
 import java.time.LocalDateTime;
@@ -150,6 +151,11 @@ public class DatabaseManager {
                 while ((line = reader.readLine()) != null) {
                     String[] parts = line.split(",");
                     if (parts[4].equals(token)) {
+                        if(AuthenticationHandler.userIsAuthenticated(parts[0])){
+                            clientSession.write("ALREADY_AUTHENTICATED\n");
+                            return false;
+                        }
+
                         if (Duration.between(LocalDateTime.parse(parts[5]), LocalDateTime.now()).toSeconds() >= 60) {
                             return false;
                         }

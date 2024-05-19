@@ -3,6 +3,7 @@ package org.project.server;
 import org.project.database.DatabaseManager;
 import java.time.LocalDateTime;
 
+
 public class User {
     private UserStateEnum state;
     private String username;
@@ -42,6 +43,7 @@ public class User {
         state = UserStateEnum.OFFLINE;
         lastOnline = LocalDateTime.now();
         databaseManager.updateClient(username, rank, lastOnline);
+        AuthenticationHandler.removeAuthenticatedUser(username);
     }
     public ClientSession getClientSession() {
         return clientSession;

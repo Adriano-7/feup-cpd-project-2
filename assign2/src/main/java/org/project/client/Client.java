@@ -112,6 +112,13 @@ public class Client {
                     writer.write("PASSWORD," + password + "\n");
                     writer.flush();
                     break;
+                case "ALREADY_AUTHENTICATED":
+                    System.out.println("-----------------------------------------------\n" +
+                                       "|     You already have an active session.     |\n" +
+                                       "|  Please log out from your current session.  |\n" +
+                                       "-----------------------------------------------");
+                    username = promptUserForUsername();
+                    writer.write("USERNAME," + username + "\n");
                 default:
                     System.out.println("Unexpected server response: " + serverResponse);
             }
