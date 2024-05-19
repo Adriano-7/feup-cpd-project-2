@@ -28,24 +28,8 @@ public class User {
     public String getUsername() {
         return username;
     }
-    public int getRank() {
-        return rank;
-    }
-    public String getToken() {
-        return token;
-    }
     public LocalDateTime getLastOnline() {return lastOnline;}
     public UserStateEnum getState() {return state;}
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-    public void setRank(int rank) {
-        this.rank = rank;
-    }
-    public void setToken(String token) {
-        this.token = token;
-    }
     public void setState(UserStateEnum state) {this.state = state;}
 
     public boolean isOnline() {

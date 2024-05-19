@@ -88,7 +88,6 @@ public class ClientSession implements Runnable {
                 break;
         }
     }
-
     public void changeState(UserStateEnum newState) {
         user.setState(newState);
     }

@@ -2,6 +2,7 @@ package org.project.database;
 
 import java.io.*;
 import java.nio.file.*;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.locks.*;
 import org.mindrot.jbcrypt.BCrypt;
@@ -13,7 +14,6 @@ public class DatabaseManager {
     private static final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     private static final Lock readLock = lock.readLock();
     private static final Lock writeLock = lock.writeLock();
-
     private static final String DATABASE_FILE = "src/main/java/org/project/database/database.csv";
     public boolean register(String username, String password, User user, String newToken) throws IOException {
         if (verifyUsername(username)) {
@@ -150,6 +150,10 @@ public class DatabaseManager {
                 while ((line = reader.readLine()) != null) {
                     String[] parts = line.split(",");
                     if (parts[4].equals(token)) {
+                        if (Duration.between(LocalDateTime.parse(parts[5]), LocalDateTime.now()).toSeconds() >= 60) {
+                            return false;
+                        }
+
                         clientSession.getUser().populate(parts[0], Integer.parseInt(parts[1]), parts[4], LocalDateTime.parse(parts[5]));
                         return true;
                     }

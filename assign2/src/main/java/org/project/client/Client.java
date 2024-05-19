@@ -10,7 +10,7 @@ public class Client {
     private BufferedWriter writer;
     private BufferedReader reader;
     private String token;
-    private String username;
+    private String username = null;
 
     public Client(String hostName, int portNumber) throws IOException {
         char[] passphrase = "changeit".toCharArray();//keystore password
@@ -48,12 +48,12 @@ public class Client {
     }
 
     private void inputLoop() throws IOException {
-        String userInput;
+        String serverInput;
         while (this.echoSocket.isConnected()) {
             try{
-                userInput = reader.readLine();
-                if (userInput != null) {
-                    System.out.println(userInput);
+                serverInput = reader.readLine();
+                if (serverInput != null) {
+                    System.out.println(serverInput);
                 }
             } catch (IOException e) {
                 System.err.println("Error reading server output");
@@ -71,30 +71,39 @@ public class Client {
             }
 
         } catch (IOException e) {
-            System.err.println("Error reading server output");
+            System.err.println("Error writing to server");
         }
     }
+
     private void authenticate() throws IOException {
-        String token = readTokenFromFile();
-        writer.write("TOKEN," + (token != null ? token : "<null>") + "\n");
-        writer.flush();
+        String authType = promptUserForAuthType();
+        if(this.username == null){
+            this.username = promptUserForUsername();
+        }
+
+        if(authType.equals("REGISTER")){
+            writer.write("AUTH_REGISTER\n");
+            writer.flush();
+        }
+        else if(authType.equals("LOGIN")){
+            String token = readTokenFromFile(username);
+            writer.write("TOKEN," + (token != null ? token : "<null>") + "\n");
+            writer.flush();
+        }
+        else {
+            System.out.println("Invalid choice");
+            return;
+        }
 
         String serverResponse = reader.readLine();
         while (serverResponse != null) {
-            System.out.println("Server Response: " + serverResponse);
             String[] responseParts = serverResponse.split(",");
             switch (responseParts[0]) {
                 case "AUTHENTICATED":
                     saveTokenToFile(responseParts[1]);
                     this.token = responseParts[1];
                     return;
-                case "REQUEST_AUTH_TYPE":
-                    String authType = promptUserForAuthType();
-                    writer.write("AUTH_TYPE," + authType + "\n");
-                    writer.flush();
-                    break;
                 case "REQUEST_USERNAME":
-                    this.username = promptUserForUsername();
                     writer.write("USERNAME," + username + "\n");
                     writer.flush();
                     break;
@@ -110,9 +119,9 @@ public class Client {
         }
     }
 
-    private String readTokenFromFile() {
+    private String readTokenFromFile(String username) {
         try {
-            BufferedReader reader = new BufferedReader(new FileReader("src/main/java/org/project/client/client.token"));
+            BufferedReader reader = new BufferedReader(new FileReader("src/main/java/org/project/client/tokens/" + username + ".token"));
             return reader.readLine();
         } catch (IOException e) {
             return null;
@@ -121,7 +130,7 @@ public class Client {
 
     private void saveTokenToFile(String token) {
         try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter("src/main/java/org/project/client/client.token"));
+            BufferedWriter writer = new BufferedWriter(new FileWriter("src/main/java/org/project/client/tokens" + username + ".token"));
             writer.write(token);
             writer.close();
         } catch (IOException e) {

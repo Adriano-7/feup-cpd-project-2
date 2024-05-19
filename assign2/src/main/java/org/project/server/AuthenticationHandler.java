@@ -7,8 +7,8 @@ import org.project.database.DatabaseManager;
 
 public class AuthenticationHandler {
     private enum AuthState {
+        INITIAL_STATE,
         AWAITING_TOKEN,
-        AWAITING_AUTH_TYPE,
         AWAITING_REGISTER_USERNAME,
         AWAITING_REGISTER_PASSWORD,
         AWAITING_LOGIN_USERNAME,
@@ -21,7 +21,7 @@ public class AuthenticationHandler {
     private DatabaseManager databaseManager;
 
     public AuthenticationHandler(DatabaseManager databaseManager) {
-        this.state = AuthState.AWAITING_TOKEN;
+        this.state = AuthState.INITIAL_STATE;
         this.databaseManager = databaseManager;
     }
 
@@ -29,6 +29,16 @@ public class AuthenticationHandler {
         String[] inputParts = input.split(",");
         System.out.println("inputParts: " + Arrays.toString(inputParts));
         switch (this.state) {
+            case INITIAL_STATE:
+                if (inputParts[0].equals("TOKEN")){
+                    this.state = AuthState.AWAITING_TOKEN;
+                }
+                else if(inputParts[0].equals("AUTH_REGISTER")){
+                    this.state = AuthState.AWAITING_REGISTER_USERNAME;
+                    clientSession.write("REQUEST_USERNAME\n");
+                    return false;
+                }
+
             case AWAITING_TOKEN:
                 if (inputParts[0].equals("TOKEN") && inputParts.length == 2) {
                     this.token = inputParts[1];
@@ -37,22 +47,9 @@ public class AuthenticationHandler {
                         successfulAuthentication(clientSession);
                         return true;
                     } else {
-                        clientSession.write("REQUEST_AUTH_TYPE\n");
-                        this.state = AuthState.AWAITING_AUTH_TYPE;
-                    }
-                }
-                return false;
-
-            case AWAITING_AUTH_TYPE:
-                if (inputParts[0].equals("AUTH_TYPE") && inputParts.length == 2) {
-                    if (inputParts[1].equals("REGISTER")) {
-                        this.state = AuthState.AWAITING_REGISTER_USERNAME;
                         clientSession.write("REQUEST_USERNAME\n");
-                    } else if (inputParts[1].equals("LOGIN")) {
                         this.state = AuthState.AWAITING_LOGIN_USERNAME;
-                        clientSession.write("REQUEST_USERNAME\n");
-                    } else {
-                        clientSession.write("REQUEST_AUTH_TYPE\n");
+                        return false;
                     }
                 }
                 return false;
