@@ -1,46 +1,36 @@
 package org.project.server;
 
-import org.project.database.DatabaseManager;
-
 import java.io.*;
-import java.net.Socket;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import javax.net.ssl.*;
 
 public class ClientSession implements Runnable {
-    private static ArrayList<ClientSession> clientSessions = new ArrayList<>();
+    private static ArrayList<User> users = new ArrayList<>();
     public static Map<UUID,Game> games = new HashMap<>();
     private Server server;
     private UUID gameId;
     private final SSLSocket clientSocket;
     private BufferedReader reader;
     private BufferedWriter writer;
-    private ClientStateEnum state;
     private AuthenticationHandler authHandler;
     private final MatchmakingPool matchmakingPool;
-    private boolean addedToMatchmakingPool = false;
-    private String username = null;
-    private Integer rank = null;
-    boolean isRanked = false;
+    private User user;
 
     public ClientSession(SSLSocket clientSocket, MatchmakingPool matchmakingPool, Server server) {
         this.clientSocket = clientSocket;
-        clientSessions.add(this);
-        this.state = ClientStateEnum.INITIAL;
+        this.user = new User(this);
+        users.add(user);
         this.matchmakingPool = matchmakingPool;
         this.server = server;
-        this.authHandler = server.getAuthHandler();
+        this.authHandler = null;
         this.gameId = null;
 
         try {
             this.reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             this.writer = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
-            writer.write("\n-----------------------------------------------\n" +
-                             "|            Welcome to the Server!           |\n" +
-                             "-----------------------------------------------\n\n");
-            writer.flush();
-
-            handleInput("");
         }  catch (IOException e) {
             System.out.println("Exception creating reader and writer: " + e.getMessage());
         }
@@ -58,57 +48,49 @@ public class ClientSession implements Runnable {
                 break;
             }
         }
-        if(state != ClientStateEnum.INITIAL && state != ClientStateEnum.AUTHENTICATING){
-            //TODO: Update timestamp and set the client variable isOnline to false
+        if(user.getState() != UserStateEnum.AUTHENTICATING){
+            user.goOffline(server.getDatabaseManager());
         }
     }
 
-    public String getUsername() {
-        return this.username;
-    }
-
     private void handleInput(String input) throws IOException {
-        switch (state) {
-            case INITIAL:
-                //TODO: Handle token
-                writer.write(
-                            "\n-----------------------------------------------\n" +
-                                "|              Select an option:              |\n" +
-                                "|---------------------------------------------|\n" +
-                                "|   Register                             [0]  |\n" +
-                                "|   Login                                [1]  |\n" +
-                                "-----------------------------------------------\n");
-                writer.flush();
-
-                this.state = ClientStateEnum.AUTHENTICATING;
-                break;
+        switch (user.getState()) {
             case AUTHENTICATING:
                 if (authHandler == null) {
-                    authHandler = server.getAuthHandler();
+                    authHandler = new AuthenticationHandler(server.getDatabaseManager());
                 }
                 if (authHandler.handleInput(input, this)) {
-                    this.state = ClientStateEnum.WAITING_ROOM;
+                    write(
+                            "\n-----------------------------------------------\n" +
+                            "|              Select an option:              |\n" +
+                            "|---------------------------------------------|\n" +
+                            "|   Play Simple Game                     [0]  |\n" +
+                            "|   Play Ranked Game                     [1]  |\n" +
+                            "-----------------------------------------------\n");
+                    user.setState(UserStateEnum.CHOOSE_MATCH_TYPE);
                     authHandler = null;
                 }
                 break;
-            case WAITING_ROOM:
-                writer.write(
-                        "\n-----------------------------------------------\n" +
-                        "|              Select an option:              |\n" +
-                        "|---------------------------------------------|\n" +
-                        "|   Play Simple Game                     [0]  |\n" +
-                        "|   Play Ranked Game                     [1]  |\n" +
-                        "-----------------------------------------------\n");
-                if(!addedToMatchmakingPool) {
-                    if(Objects.equals(input, "0")) {
-                        matchmakingPool.addClient("Simple",this);
-                        addedToMatchmakingPool = true;
-                    } else if(Objects.equals(input, "1")) {
-                        isRanked = true;
-                        matchmakingPool.addClient("Ranked",this);
-                        addedToMatchmakingPool = true;
+                case CHOOSE_MATCH_TYPE:
+                    String welcomeMessage = "-----------------------------------------------\n" +
+                                            "|        Welcome to the Waiting Room.         |\n" +
+                                            "-----------------------------------------------\n" +
+                                            "|  Please wait while we find another          |\n" +
+                                            "|  player to join you.                        |\n" +
+                                            "-----------------------------------------------\n\n";
+
+                    if (input.equals("0")) {
+                        user.setState(UserStateEnum.WAITING_ROOM);
+                        MatchmakingPool.addClient(this.user, "Simple");
+                        write(welcomeMessage);
+                    } else if (input.equals("1")) {
+                        user.setState(UserStateEnum.WAITING_ROOM);
+                        MatchmakingPool.addClient(this.user, "Ranked");
+                        write(welcomeMessage);
+                    } else {
+                        write("Invalid input. Please enter 1 or 2.\n");
                     }
-                }
+            case WAITING_ROOM:
                 break;
             case IN_GAME:
                 if(gameId != null) {
@@ -116,31 +98,26 @@ public class ClientSession implements Runnable {
                 }
                 break;
             case GAME_OVER:
-                writer.write(
-                        "-----------------------------------------------\n" +
-                        "|                  GAME OVER                  |\n" +
+                write(
+                        "\n-----------------------------------------------\n" +
+                        "|              Select an option:              |\n" +
                         "|---------------------------------------------|\n" +
-                        "|  Thanks for playing!                        |\n" +
+                        "|   Play Simple Game                     [0]  |\n" +
+                        "|   Play Ranked Game                     [1]  |\n" +
                         "-----------------------------------------------\n");
-                writer.flush();
-
-                state = ClientStateEnum.WAITING_ROOM;
-                if(isRanked) {
-                    // TODO: Update rank
-                }
+                user.setState(UserStateEnum.CHOOSE_MATCH_TYPE);
                 break;
             default:
                 break;
         }
     }
-
-    public void changeState(ClientStateEnum newState) {
-        this.state = newState;
+    public void changeState(UserStateEnum newState) {
+        user.setState(newState);
     }
     public void setGameId(UUID gameId) {
         this.gameId = gameId;
     }
-    public void writer(String message) {
+    public void write(String message) {
         try {
             writer.write(message);
             writer.flush();
@@ -148,14 +125,11 @@ public class ClientSession implements Runnable {
             System.out.println("Error sending message to client: " + e.getMessage());
         }
     }
+    public User getUser() {
+        return user;
+    }
 
-    public void updateMatchmakingStatus(boolean isInMatchmakingPool) {
-        this.addedToMatchmakingPool = isInMatchmakingPool;
-    }
-    public void setUsername(String username) {
-        this.username = username;
-    }
-    public void setRank(Integer rank) {
-        this.rank = rank;
+    public void setUser(User user) {
+        this.user = user;
     }
 }
