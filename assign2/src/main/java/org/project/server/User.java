@@ -9,13 +9,15 @@ public class User {
     private Integer rank;
     private String token;
     private LocalDateTime lastOnline;
+    private ClientSession clientSession;
 
-    public User() {
+    public User(ClientSession clientSession) {
         this.username = null;
         this.rank = null;
         this.token = null;
         this.state = UserStateEnum.AUTHENTICATING;
         this.lastOnline = null;
+        this.clientSession = clientSession;
     }
 
     public void populate(String username, int rank, String token, LocalDateTime lastOnline) {
@@ -40,5 +42,8 @@ public class User {
         state = UserStateEnum.OFFLINE;
         lastOnline = LocalDateTime.now();
         databaseManager.updateClient(username, rank, lastOnline);
+    }
+    public ClientSession getClientSession() {
+        return clientSession;
     }
 }

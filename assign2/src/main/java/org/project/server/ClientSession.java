@@ -21,12 +21,12 @@ public class ClientSession implements Runnable {
 
     public ClientSession(SSLSocket clientSocket, MatchmakingPool matchmakingPool, Server server) {
         this.clientSocket = clientSocket;
+        this.user = new User(this);
         users.add(user);
         this.matchmakingPool = matchmakingPool;
         this.server = server;
         this.authHandler = null;
         this.gameId = null;
-        this.user = new User();
 
         try {
             this.reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
@@ -61,7 +61,7 @@ public class ClientSession implements Runnable {
                 }
                 if (authHandler.handleInput(input, this)) {
                     user.setState(UserStateEnum.WAITING_ROOM);
-                    matchmakingPool.addClient(this);
+                    matchmakingPool.addClient(this.getUser());
                     authHandler = null;
                 }
                 break;
@@ -74,7 +74,7 @@ public class ClientSession implements Runnable {
                 break;
             case GAME_OVER:
                 user.setState(UserStateEnum.WAITING_ROOM);
-                matchmakingPool.addClient(this);
+                matchmakingPool.addClient(this.getUser());
                 write(
                                 "-----------------------------------------------\n" +
                                 "|        Welcome to the Waiting Room.         |\n" +

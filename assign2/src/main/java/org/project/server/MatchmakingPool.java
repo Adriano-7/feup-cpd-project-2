@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class MatchmakingPool implements Runnable {
-    private final List<ClientSession> simplePlayers;
+    private final List<User> simplePlayers;
     private final Object lock = new Object();
 
     public MatchmakingPool() {
@@ -18,12 +18,14 @@ public class MatchmakingPool implements Runnable {
 
     private void checkAndRemoveOfflineClients() {
         synchronized (lock) {
-            Iterator<ClientSession> iterator = simplePlayers.iterator();
+            Iterator<User> iterator = simplePlayers.iterator();
             while (iterator.hasNext()) {
-                ClientSession client = iterator.next();
-                if (!client.getUser().isOnline() && Duration.between(client.getUser().getLastOnline(), LocalDateTime.now()).toSeconds() >= 60) {
+                User user = iterator.next();
+                if (!user.isOnline() &&
+                    Duration.between(user.getLastOnline(), LocalDateTime.now()).toSeconds() >= 60
+                ) {
                     iterator.remove();
-                    System.out.println("Client " + client.getUser().getUsername() + " removed from matchmaking pool due to inactivity.");
+                    System.out.println("Client " + user.getUsername() + " removed from matchmaking pool due to inactivity.");
                 }
             }
         }
@@ -35,35 +37,35 @@ public class MatchmakingPool implements Runnable {
             checkAndRemoveOfflineClients();
             synchronized (lock) {
                 if (simplePlayers.size() >= 2) {
-                    ClientSession client1 = null;
-                    ClientSession client2 = null;
+                    User user1 = null;
+                    User user2 = null;
 
-                    for (ClientSession client : simplePlayers) {
-                        if (client.getUser().isOnline()) {
-                            if (client1 == null) {
-                                client1 = client;
-                            } else if (client2 == null) {
-                                client2 = client;
+                    for (User user : simplePlayers) {
+                        if (user.isOnline()) {
+                            if (user1 == null) {
+                                user1 = user;
+                            } else if (user2 == null) {
+                                user2 = user;
                             }
 
-                            if (client1 != null && client2 != null) {
+                            if (user1 != null && user2 != null) {
                                 break;
                             }
                         }
                     }
 
-                    if (client1 != null && client2 != null) {
-                        simplePlayers.remove(client1);
-                        simplePlayers.remove(client2);
+                    if (user1 != null && user2 != null) {
+                        simplePlayers.remove(user1);
+                        simplePlayers.remove(user2);
 
-                        client1.changeState(UserStateEnum.IN_GAME);
-                        client2.changeState(UserStateEnum.IN_GAME);
+                        user1.setState(UserStateEnum.IN_GAME);
+                        user2.setState(UserStateEnum.IN_GAME);
 
                         UUID gameId = UUID.randomUUID();
 
                         Game game = null;
                         try {
-                            game = new Game(gameId, client1, client2);
+                            game = new Game(gameId, user1.getClientSession(), user2.getClientSession());
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
@@ -71,16 +73,16 @@ public class MatchmakingPool implements Runnable {
                             ClientSession.games.put(gameId, game);
                         }
 
-                        client1.setGameId(gameId);
-                        client2.setGameId(gameId);
+                        user1.getClientSession().setGameId(gameId);
+                        user2.getClientSession().setGameId(gameId);
                     }
                 }
             }
         }
     }
-    public void addClient(ClientSession client) {
+    public void addClient(User user) {
         synchronized (lock) {
-            simplePlayers.add(client);
+            simplePlayers.add(user);
         }
     }
 }

@@ -130,7 +130,7 @@ public class Client {
 
     private void saveTokenToFile(String token) {
         try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter("src/main/java/org/project/client/tokens" + username + ".token"));
+            BufferedWriter writer = new BufferedWriter(new FileWriter("src/main/java/org/project/client/tokens/" + username + ".token"));
             writer.write(token);
             writer.close();
         } catch (IOException e) {
