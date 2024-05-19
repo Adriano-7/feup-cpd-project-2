@@ -28,14 +28,15 @@ public class AuthenticationHandler {
     private static final Lock readLock = lock.readLock();
     private static final Lock writeLock = lock.writeLock();
     private static Set<String> authenticatedUsers = new HashSet<>();
-
+    private AuthResult authResult;
 
     public AuthenticationHandler(DatabaseManager databaseManager) {
         this.state = AuthState.INITIAL_STATE;
         this.databaseManager = databaseManager;
+        this.authResult = new AuthResult();
     }
 
-    public boolean handleInput(String input, ClientSession clientSession) throws IOException {
+    public AuthResult handleInput(String input, ClientSession clientSession) throws IOException {
         String[] inputParts = input.split(",");
         System.out.println("inputParts: " + Arrays.toString(inputParts));
 
@@ -47,7 +48,9 @@ public class AuthenticationHandler {
                 else if(inputParts[0].equals("AUTH_REGISTER")){
                     this.state = AuthState.AWAITING_REGISTER_USERNAME;
                     clientSession.write("REQUEST_USERNAME\n");
-                    return false;
+
+                    this.authResult.setParameters(false, false);
+                    return this.authResult;
                 }
 
             case AWAITING_TOKEN:
@@ -56,21 +59,29 @@ public class AuthenticationHandler {
                     if (databaseManager.verifyToken(token, clientSession)) {
                         clientSession.write("AUTHENTICATED," + token + "\n");
                         successfulAuthentication(clientSession);
-                        return true;
+
+                        this.authResult.setParameters(true, true);
+                        return this.authResult;
                     } else {
                         clientSession.write("REQUEST_USERNAME\n");
                         this.state = AuthState.AWAITING_LOGIN_USERNAME;
-                        return false;
+
+                        this.authResult.setParameters(false, false);
+                        return this.authResult;
                     }
                 }
-                return false;
+
+                this.authResult.setParameters(false, false);
+                return this.authResult;
 
             case AWAITING_LOGIN_USERNAME:
                 if (inputParts[0].equals("USERNAME") && inputParts.length == 2) {
                     this.username = inputParts[1];
                     if(userIsAuthenticated(this.username)){
                         clientSession.write("ALREADY_AUTHENTICATED\n");
-                        return false;
+
+                        this.authResult.setParameters(false, false);
+                        return this.authResult;
                     }
                     if (databaseManager.verifyUsername(username)) {
                         this.state = AuthState.AWAITING_LOGIN_PASSWORD;
@@ -80,7 +91,9 @@ public class AuthenticationHandler {
                         clientSession.write("REQUEST_USERNAME\n");
                     }
                 }
-                return false;
+
+                this.authResult.setParameters(false, false);
+                return this.authResult;
 
             case AWAITING_LOGIN_PASSWORD:
                 if (inputParts[0].equals("PASSWORD") && inputParts.length == 2) {
@@ -89,12 +102,16 @@ public class AuthenticationHandler {
                         this.token = newToken;
                         clientSession.write("AUTHENTICATED," + token + "\n");
                         successfulAuthentication(clientSession);
-                        return true;
+
+                        this.authResult.setParameters(true, false);
+                        return this.authResult;
                     } else {
                         clientSession.write("REQUEST_PASSWORD\n");
                     }
                 }
-                return false;
+
+                this.authResult.setParameters(false, false);
+                return this.authResult;
 
             case AWAITING_REGISTER_USERNAME:
                 if (inputParts[0].equals("USERNAME") && inputParts.length == 2) {
@@ -106,7 +123,9 @@ public class AuthenticationHandler {
                         clientSession.write("REQUEST_USERNAME\n");
                     }
                 }
-                return false;
+
+                this.authResult.setParameters(false, false);
+                return this.authResult;
 
             case AWAITING_REGISTER_PASSWORD:
                 if (inputParts[0].equals("PASSWORD") && inputParts.length == 2) {
@@ -115,15 +134,20 @@ public class AuthenticationHandler {
                         this.token = newToken;
                         clientSession.write("AUTHENTICATED," + token + "\n");
                         successfulAuthentication(clientSession);
-                        return true;
+
+                        this.authResult.setParameters(true, false);
+                        return this.authResult;
                     } else {
                         clientSession.write("REQUEST_USERNAME\n");
                     }
                 }
-                return false;
+
+                this.authResult.setParameters(false, false);
+                return this.authResult;
 
             default:
-                return false;
+                this.authResult.setParameters(false, false);
+                return this.authResult;
         }
     }
 

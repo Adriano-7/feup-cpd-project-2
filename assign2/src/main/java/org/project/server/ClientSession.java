@@ -59,16 +59,27 @@ public class ClientSession implements Runnable {
                 if (authHandler == null) {
                     authHandler = new AuthenticationHandler(server.getDatabaseManager());
                 }
-                if (authHandler.handleInput(input, this)) {
-                    write(
-                            "\n-----------------------------------------------\n" +
-                            "|              Select an option:              |\n" +
-                            "|---------------------------------------------|\n" +
-                            "|   Play Simple Game                     [0]  |\n" +
-                            "|   Play Ranked Game                     [1]  |\n" +
-                            "-----------------------------------------------\n");
-                    user.setState(UserStateEnum.CHOOSE_MATCH_TYPE);
+                AuthResult result = authHandler.handleInput(input, this);
+                System.out.println("Result: " + result.isAuthenticated() + " " + result.isThroughToken());
+                if (result.isAuthenticated() && !result.isThroughToken()) {
                     authHandler = null;
+                    write("\n-----------------------------------------------\n" +
+                          "|              Select an option:              |\n" +
+                          "|---------------------------------------------|\n" +
+                          "|   Play Simple Game                     [0]  |\n" +
+                          "|   Play Ranked Game                     [1]  |\n" +
+                          "-----------------------------------------------\n");
+                    user.setState(UserStateEnum.CHOOSE_MATCH_TYPE);
+                }
+                else if (result.isAuthenticated() &&  result.isThroughToken()) {
+                    authHandler = null;
+                    write( "-----------------------------------------------\n" +
+                           "|        Welcome to the Waiting Room.         |\n" +
+                           "-----------------------------------------------\n" +
+                           "|  Please wait while we find another          |\n" +
+                           "|  player to join you.                        |\n" +
+                           "-----------------------------------------------\n\n");
+                    user.setState(UserStateEnum.WAITING_ROOM);
                 }
                 break;
                 case CHOOSE_MATCH_TYPE:
