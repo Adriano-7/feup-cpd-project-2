@@ -5,7 +5,7 @@ This is a client-server system for an online text-based Odds and Evens game, dev
 
 ## Prerequisites
 
-- Java 21 or later
+- Java 21
 - Gradle
 
 ## Building the Project
