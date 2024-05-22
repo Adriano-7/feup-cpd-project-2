@@ -120,7 +120,6 @@ public class Client {
                     username = promptUserForUsername();
                     writer.write("USERNAME," + username + "\n");
                 default:
-                    System.out.println("Unexpected server response: " + serverResponse);
             }
             serverResponse = reader.readLine();
         }

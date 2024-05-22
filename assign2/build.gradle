@@ -1,6 +1,9 @@
 plugins {
     id 'java'
+    id 'application'
 }
+
+mainClassName = 'org.project.Main'
 
 group = 'org.example'
 version = '1.0-SNAPSHOT'
@@ -25,4 +28,8 @@ tasks.withType(JavaCompile) {
 
 tasks.withType(Test) {
     jvmArgs '-Dfile.encoding=UTF-8'
+}
+
+run {
+    standardInput = System.in
 }

@@ -18,8 +18,13 @@ This is a client-server system for an online text-based Odds and Evens game, dev
 
 2. Build and run the project using Gradle. For that you can use the IntelliJ IDEA IDE or run the following command:
    ```bash
-   gradle run
+   ./gradlew --console plain run
    ```
+3. To login in any of the available accounts you can use the password 1234 in any of the following accounts:
+   - Username: joao
+   - Username: luis
+   - Username: ines
+   - Username: joaquim
 
 ## Features
 
