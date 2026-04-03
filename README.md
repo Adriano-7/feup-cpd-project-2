@@ -1,42 +1,81 @@
-# 2nd CPD Project
-# Online Game Server
 
-This is a client-server system for an online text-based Odds and Evens game, developed as part of a Distributed Systems assignment. The server supports user authentication, matchmaking, and game hosting, while the clients can register, authenticate, and participate in games.
+# Online Game Server 
 
-## Prerequisites
+> **Project**
+> <br />
+> Course Unit: [Computação Paralela e Distribuída](https://sigarra.up.pt/feup/pt/ucurr_geral.ficha_uc_view?pv_ocorrencia_id=520333) (CPD), 3rd year
+> <br />
+> Course: Informatics and Computing Engineering
+> <br />
+> Faculty: **FEUP** (Faculty of Engineering of the University of Porto)
+> <br />
+> Project evaluation: **18**/20
 
-- Java 21
+---
+
+## Project Goals
+
+Development of a robust, concurrent client-server system for an online text-based "Odds and Evens" game. The system focuses on handling user authentication, secure communication via SSL/TLS, and matchmaking strategies in a distributed environment, ensuring thread safety and scalability.
+
+**Core Requirements:**
+- **User Authentication:** Secure registration and login using hashed passwords (BCrypt).
+- **Matchmaking:** Implementation of both "Simple" (FCFS) and "Ranked" (score-based) matching.
+- **Concurrency:** Management of client sessions using Java Virtual Threads.
+- **Data Persistence:** Thread-safe access to user data and match history.
+
+## Technical Approach
+
+### 1. Networking and Security
+To ensure secure communication, we implemented an **SSL/TLS layer** using `SSLSocket` and `SSLServerSocket`. Certificates were managed via a local Java KeyStore (`JKS`), providing encrypted data transmission between clients and the server.
+
+### 2. Concurrency Model
+The server leverages **Java Virtual Threads** (`java.lang.Thread.ofVirtual()`) to handle a high volume of concurrent client connections without the memory overhead associated with platform threads. This allowed for:
+* **Non-blocking IO:** Independent threads for input/output loops per client.
+* **Scalable Matchmaking:** Dedicated virtual threads for each matchmaking strategy, continuously processing pools in the background.
+
+### 3. Thread-Safe Data Management
+Given the distributed nature of the game, maintaining consistent states across concurrent sessions was critical:
+* **Database Access:** We implemented a `ReentrantReadWriteLock` in the `DatabaseManager` to allow multiple concurrent reads while ensuring exclusive access during write operations (e.g., registration or score updates).
+* **Matchmaking Pools:** The matchmaking strategies utilized synchronized blocks and thread-safe collections to manage client hand-offs effectively, preventing race conditions when two users are matched simultaneously.
+
+### 4. Matchmaking Strategies
+We developed a modular strategy pattern to handle different matchmaking needs:
+* **Simple Matchmaking:** Operates on a First-Come, First-Served (FCFS) basis, grouping the first two available users in the pool.
+* **Ranked Matchmaking:** Uses a score-based queue. To ensure players eventually find a match, the algorithm dynamically increases the `maxDifference` threshold as wait time increases, allowing players with larger skill gaps to match if no closer opponent is found within a specific timeout.
+
+## Implementation Details
+
+* **Authentication Handler:** A state-machine-based handler that guides users through the login/registration process, preventing unauthorized access to the game room.
+* **Game Logic:** A stateful `Game` class manages individual match progression, ensuring parity choices and guesses are processed sequentially within a single game instance.
+* **Fault Tolerance:** Robust handling of connection drops during the matchmaking phase or in-game, ensuring that players are removed from pools and authentication states are cleaned up correctly.
+
+## Running the Project
+
+**Prerequisites:**
+- Java 21+
 - Gradle
 
-## Building the Project
+**Build and Run:**
+```bash
+# Clone the repository
+git clone git@git.fe.up.pt:cpd/2324/t10/g11.git
+cd g11/assign2
 
-1. Clone the repository:
-   ```bash
-   git clone git@git.fe.up.pt:cpd/2324/t10/g11.git
-   cd g11/assign2
-   ``` 
+# Start the application
+./gradlew run
+```
 
-2. Build and run the project using Gradle. For that you can use the IntelliJ IDEA IDE or run the following command:
-   ```bash
-   ./gradlew --console plain run
-   ```
-3. To login in any of the available accounts you can use the password 1234 in any of the following accounts:
-   - Username: joao
-   - Username: luis
-   - Username: ines
-   - Username: joaquim
+## Tech Stack
 
-## Features
+* **Language:** Java 21
+* **Build System:** Gradle
+* **Networking:** Java SSL/TLS Sockets
+* **Security:** BCrypt for password hashing
+* **Concurrency:** Java Virtual Threads, `java.util.concurrent` locks
+* **Data Persistence:** CSV-based file system with atomic read/write locks
 
-- User registration and authentication
-- Simple matchmaking mode (first 2 users form a game)
-- Ranked matchmaking mode (users are matched based on their pontuation levels)
-- Fault tolerance for broken connections during matchmaking
-- Concurrent processing using Java Virtual Threads
-- Thread-safe data structures using `java.util.concurrent.locks`
+## Team
 
-## Contributors
-
-- Adriano Machado: **up202105352@up.pt**    
-- Daniel Dória: **up202108808@up.pt**
-- André Rodrigues: **up202108721@up.pt**
+- Adriano Machado (**up202105352@up.pt**)
+- Daniel Dória (**up202108808@up.pt**)
+- André Rodrigues (**up202108721@up.pt**)
